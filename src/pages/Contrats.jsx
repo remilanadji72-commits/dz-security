@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { useDataStore } from '../store/useDataStore';
 import { colors, getJoursRestants } from '../constants';
+import { exportToExcel, exportTableToPDF } from '../utils/export';
 
 function Contrats() {
   const { contratsData, fetchToutesLesDonnees } = useDataStore();
@@ -206,7 +207,50 @@ function Contrats() {
         </div>
 
         <div style={{ flex: '2 1 600px' }} className="card">
-          <h3 style={{ marginTop: 0, color: '#1f2937' }}>1-4. Suivi et Alertes d'Expiration</h3>
+          <div className="flex-between mb-15">
+            <h3 style={{ marginTop: 0, marginBottom: 0, color: '#1f2937' }}>1-4. Suivi et Alertes d'Expiration</h3>
+            <div className="flex-row-sm">
+              <button
+                className="btn btn-success btn-sm"
+                onClick={() => exportToExcel(
+                  ['Type', 'Référence', 'Client', 'Site', 'Début', 'Fin', 'Montant (DA)', 'Statut'],
+                  listeContrats.map(c => [
+                    c.type_document || 'CONTRAT',
+                    c.reference_document || '',
+                    c.clients?.nom_entreprise || '',
+                    c.nom_site,
+                    c.date_debut,
+                    c.date_fin,
+                    c.montant_total || '',
+                    getJoursRestants(c.date_fin) <= 30 ? `⚠️ ${getJoursRestants(c.date_fin)}j restants` : 'Actif',
+                  ]),
+                  `Marches_${new Date().toISOString().slice(0, 10)}`
+                )}
+              >
+                📊 Excel
+              </button>
+              <button
+                className="btn btn-danger btn-sm"
+                onClick={() => exportTableToPDF({
+                  title: 'SERVICE DES MARCHÉS — CONTRATS & SUIVI',
+                  subtitle: `Édité le ${new Date().toLocaleDateString('fr-DZ')}`,
+                  headers: ['Type', 'Référence', 'Client', 'Site', 'Fin', 'Montant (DA)', 'Statut'],
+                  rows: listeContrats.map(c => [
+                    c.type_document || 'CONTRAT',
+                    c.reference_document || '---',
+                    c.clients?.nom_entreprise || '---',
+                    c.nom_site,
+                    c.date_fin,
+                    formaterMontantDZ(c.montant_total),
+                    getJoursRestants(c.date_fin) <= 30 ? `⚠️ ${getJoursRestants(c.date_fin)}j` : '✓ Actif',
+                  ]),
+                  filename: `Marches_${new Date().toISOString().slice(0, 10)}`,
+                })}
+              >
+                📄 PDF
+              </button>
+            </div>
+          </div>
           <table className="table table-xs">
             <thead>
               <tr>

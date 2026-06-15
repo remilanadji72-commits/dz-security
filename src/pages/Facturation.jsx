@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { useDataStore } from '../store/useDataStore';
 import { colors } from '../constants';
+import { exportInvoiceToPDF, exportTableToPDF } from '../utils/export';
 
 function Facturation() {
   const { agentsData } = useDataStore();
@@ -101,7 +102,22 @@ function Facturation() {
               <h3 className="section-title">Attachements de fin de mois</h3>
               <p className="text-xs text-muted" style={{ marginTop: '5px' }}>Bilan des jours de travail consolidés par site, prêt à la signature client.</p>
             </div>
-            <button className="btn btn-primary btn-sm">📄 Générer Attachement PDF</button>
+            <button
+              className="btn btn-primary btn-sm"
+              onClick={() => exportTableToPDF({
+                title: 'ATTACHEMENTS MENSUELS — BILAN DES POINTAGES',
+                subtitle: `Édité le ${new Date().toLocaleDateString('fr-DZ')}`,
+                headers: ['Site Client', 'Jours Validés', 'Montant Estimé HT', 'Statut'],
+                rows: [
+                  ['Banque BNA - Alger Centre', `${pointagesBNA} Jours`, `${new Intl.NumberFormat('fr-DZ').format(montantEstimeBNA)} DA`, attachementBnaSigne ? 'SIGNÉ ✓' : 'EN ATTENTE'],
+                  ['Usine Cevital - Bejaia', `${pointagesCevital} Jours`, `${new Intl.NumberFormat('fr-DZ').format(montantEstimeCevital)} DA`, 'SIGNÉ ✓'],
+                ],
+                filename: `Attachements_${new Date().toISOString().slice(0, 7)}`,
+                orientation: 'portrait',
+              })}
+            >
+              📄 Générer Attachement PDF
+            </button>
           </div>
           <table className="table">
             <thead>
@@ -169,8 +185,9 @@ function Facturation() {
                     <td className="text-center">
                       {f.statut_paiement === 'PAYEE' ? <span className="badge badge-success">✅ PAYÉE</span> : <span className="badge badge-danger">⏳ EN ATTENTE</span>}
                     </td>
-                    <td className="text-center">
-                      {f.statut_paiement !== 'PAYEE' && <button onClick={() => encaisserFacture(f.id)} className="btn btn-dark btn-xs">Encaisser</button>}
+                    <td className="text-center flex-row-sm" style={{ justifyContent: 'center' }}>
+                      <button onClick={() => exportInvoiceToPDF(f)} className="btn btn-danger btn-xs">📄 PDF</button>
+                      {f.statut_paiement !== 'PAYEE' && <button onClick={() => encaisserFacture(f.id)} className="btn btn-dark btn-xs">💰 Encaisser</button>}
                     </td>
                   </tr>
                 ))}
