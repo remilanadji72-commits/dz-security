@@ -562,3 +562,134 @@
 [dir="rtl"] .form-input-sm { text-align: right; direction: rtl; }
 
 /* mb/padding utilities — pas d'inversion nécessaire */
+
+/* =============================================
+   TOPBAR
+   ============================================= */
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.7; }
+}
+
+.topbar {
+  height: 54px;
+  background-color: white;
+  border-bottom: 1px solid var(--gray-200);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  gap: 12px;
+  z-index: 10;
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.topbar-title {
+  font-size: 15px;
+  font-weight: bold;
+  color: var(--gray-900);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.topbar-role {
+  font-size: 11px;
+  font-weight: bold;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background-color: var(--gray-100);
+  color: var(--gray-600);
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.topbar-sos {
+  background-color: var(--color-red);
+  color: white;
+  border: none;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  animation: pulse 2s infinite;
+  white-space: nowrap;
+}
+
+/* =============================================
+   LANGUAGE SWITCHER
+   ============================================= */
+
+.lang-switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 12px;
+  border: 1px solid var(--gray-200);
+  border-radius: 20px;
+  background-color: white;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: bold;
+  color: var(--gray-700);
+  transition: background-color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+
+.lang-switcher:hover {
+  background-color: var(--gray-50);
+  border-color: var(--color-blue);
+}
+
+.lang-switcher-sidebar {
+  width: 100%;
+  justify-content: center;
+  border-radius: 5px;
+  border-color: rgba(255,255,255,0.15);
+  background-color: rgba(52, 152, 219, 0.85);
+  color: white;
+  padding: 9px;
+  font-size: 13px;
+}
+
+.lang-switcher-sidebar:hover {
+  background-color: rgba(52, 152, 219, 1);
+  border-color: rgba(255,255,255,0.3);
+}
+
+/* =============================================
+   SIDEBAR — EN-TÊTES DE SECTIONS
+   ============================================= */
+
+.sidebar-section {
+  padding: 12px 20px 4px;
+  font-size: 9px;
+  font-weight: 900;
+  color: rgba(255,255,255,0.25);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  pointer-events: none;
+}
+
+/* RTL Topbar */
+[dir="rtl"] .topbar-title { text-align: right; }
+[dir="rtl"] .topbar-role  { direction: ltr; }

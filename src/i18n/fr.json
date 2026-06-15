@@ -28,6 +28,13 @@
     "RH":          "Ressources Humaines",
     "JURIDIQUE":   "Département Juridique"
   },
+  "sections": {
+    "direction":  "DIRECTION GÉNÉRALE",
+    "operations": "OPÉRATIONS",
+    "commercial": "COMMERCIAL",
+    "rh":         "RESSOURCES HUMAINES",
+    "juridique":  "JURIDIQUE"
+  },
   "common": {
     "save":           "Enregistrer",
     "cancel":         "Annuler",

@@ -10,6 +10,9 @@ import { useLanguage } from './context/LanguageContext';
 import { colors } from './constants';
 
 import Sidebar    from './components/Sidebar';
+import Topbar     from './components/layout/Topbar';
+import RoleGuard  from './components/layout/RoleGuard';
+import NotFound   from './pages/NotFound';
 import Facturation  from './pages/Facturation';
 import Armurerie    from './pages/Armurerie';
 import Contrats     from './pages/Contrats';
@@ -134,10 +137,9 @@ function ArchivesRedirect() {
   );
 }
 
-// ── Admin layout (Sidebar + content) ──────────────────────────────────────────
+// ── Admin layout (Sidebar + Topbar + content) ─────────────────────────────────
 function AdminLayout({ session }) {
-  const { incidentsData, roleAdmin, fetchToutesLesDonnees, initRealtime } = useDataStore();
-  const { t } = useLanguage();
+  const { roleAdmin, fetchToutesLesDonnees, initRealtime } = useDataStore();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -159,16 +161,11 @@ function AdminLayout({ session }) {
       />
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        {incidentsData.length > 0 && activeRoute !== 'incidents' && (
-          <div
-            onClick={() => navigate('/incidents')}
-            style={{ backgroundColor: '#ef4444', color: 'white', padding: '10px 20px', cursor: 'pointer', textAlign: 'center', fontWeight: 'bold', animation: 'pulse 2s infinite' }}
-          >
-            🚨 {t('kpi.alert_msg', { count: incidentsData.length })}
-          </div>
-        )}
+        <Topbar />
         <div style={{ flex: 1, overflowY: 'auto' }}>
-          <Outlet />
+          <RoleGuard>
+            <Outlet />
+          </RoleGuard>
         </div>
       </div>
     </div>
@@ -227,7 +224,7 @@ function App() {
       </Route>
 
       {/* Catch-all */}
-      <Route path="*" element={<Navigate to={session ? '/kpi' : '/login'} replace />} />
+      <Route path="*" element={session ? <NotFound /> : <Navigate to="/login" replace />} />
     </Routes>
   );
 }

@@ -28,6 +28,13 @@
     "RH":         "الموارد البشرية",
     "JURIDIQUE":  "القسم القانوني"
   },
+  "sections": {
+    "direction":  "المديرية العامة",
+    "operations": "العمليات",
+    "commercial": "التجاري",
+    "rh":         "الموارد البشرية",
+    "juridique":  "القانوني"
+  },
   "common": {
     "save":           "حفظ",
     "cancel":         "إلغاء",
