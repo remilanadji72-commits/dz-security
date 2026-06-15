@@ -1,0 +1,273 @@
+{
+  "nav": {
+    "kpi":          "Poste de Commandement",
+    "statistiques": "Statistiques & Analyses",
+    "parametres":   "Paramètres du Système",
+    "salleops":     "Gestion Sites & Salle OPS",
+    "inspection":   "Service Inspection",
+    "logistique":   "Service Logistique",
+    "armurerie":    "Armement & Transmission",
+    "formation":    "Service Formation",
+    "planning":     "Planning & Présence",
+    "incidents":    "Main Courante (SOS)",
+    "marches":      "Service des Marchés",
+    "facturation":  "Service Facturation",
+    "recouvrement": "Service Recouvrement",
+    "prospection":  "Service Prospection",
+    "recrutement":  "Service Recrutement",
+    "social":       "Service Social",
+    "archives":     "Archives Personnel",
+    "attachements": "Attachements (Au 25)",
+    "juridique":    "Service Juridique",
+    "pointage":     "Pointage Journalier"
+  },
+  "roles": {
+    "GERANT":      "Direction Générale",
+    "OPERATIONS":  "Département Opérations",
+    "COMMERCIAL":  "Département Commercial",
+    "RH":          "Ressources Humaines",
+    "JURIDIQUE":   "Département Juridique"
+  },
+  "common": {
+    "save":           "Enregistrer",
+    "cancel":         "Annuler",
+    "add":            "Ajouter",
+    "add_new":        "Ajouter un nouveau",
+    "edit":           "Modifier",
+    "delete":         "Supprimer",
+    "search":         "Rechercher",
+    "reset":          "Réinitialiser",
+    "confirm":        "Confirmer",
+    "validate":       "Valider",
+    "close":          "Fermer",
+    "loading":        "Chargement...",
+    "refresh":        "Rafraîchir",
+    "print":          "Imprimer",
+    "export_pdf":     "Exporter PDF",
+    "export_excel":   "Exporter Excel",
+    "no_data":        "Aucune donnée à afficher.",
+    "all_sites":      "— Tous les sites —",
+    "yes":            "Oui",
+    "no":             "Non",
+    "status":         "Statut",
+    "actions":        "Actions",
+    "date":           "Date",
+    "name":           "Nom",
+    "site":           "Site",
+    "filter_by":      "Filtrer par",
+    "current_month":  "Mois actuel",
+    "found_of":       "{{found}} trouvé(s) sur {{total}}",
+    "no_results":     "Aucun résultat ne correspond à votre recherche.",
+    "see_all":        "Voir tout",
+    "send":           "Envoyer",
+    "generate":       "Générer",
+    "download":       "Télécharger",
+    "preview":        "Aperçu",
+    "back":           "Retour",
+    "next":           "Suivant",
+    "previous":       "Précédent",
+    "total":          "Total",
+    "average":        "Moyenne",
+    "per_month":      "par mois",
+    "required_fields":"* Champs obligatoires",
+    "confirm_delete": "Êtes-vous sûr de vouloir supprimer ?",
+    "error_required": "Veuillez remplir tous les champs obligatoires.",
+    "success_saved":  "Enregistré avec succès.",
+    "error_occurred": "Une erreur est survenue. Réessayez.",
+    "state_current":  "État actuel"
+  },
+  "status": {
+    "ACTIF":      "ACTIF",
+    "INACTIF":    "INACTIF",
+    "RESOLU":     "RÉSOLU",
+    "EN_COURS":   "EN COURS",
+    "EXPIRE":     "EXPIRÉ",
+    "PAYEE":      "PAYÉE",
+    "IMPAYEE":    "IMPAYÉE",
+    "BROUILLON":  "BROUILLON",
+    "EMISE":      "ÉMISE",
+    "AU_COFFRE":  "AU COFFRE",
+    "DEPLOYEE":   "DÉPLOYÉE",
+    "OK":         "OK"
+  },
+  "auth": {
+    "subtitle":           "Control Center",
+    "email":              "Email Administrateur",
+    "password":           "Mot de passe",
+    "login":              "Login",
+    "logout":             "Déconnexion",
+    "lang_toggle_to_ar":  "عربي 🇩🇿",
+    "lang_toggle_to_fr":  "Français 🇫🇷",
+    "erp_system":         "ERP SYSTEM"
+  },
+  "kpi": {
+    "title":       "Poste de Commandement",
+    "subtitle":    "Vue en temps réel sur les effectifs et les urgences.",
+    "total_staff": "EFFECTIF GLOBAL",
+    "active_sos":  "URGENCES (SOS)",
+    "live_map":    "📍 Live Map Tracking",
+    "alert_msg":   "{{count}} INCIDENT(S) EN COURS — CLIQUEZ ICI POUR VOIR"
+  },
+  "recrutement": {
+    "title":            "SERVICE RECRUTEMENT & CARRIÈRE",
+    "subtitle":         "Gestion administrative complète : Habilitations, Contrats, Cartes Professionnelles.",
+    "tab_personnel":    "Fiches Personnel & Contrats",
+    "tab_organismes":   "Directions Externes",
+    "tab_inspection":   "Inspection du Travail",
+    "tab_archives":     "Archives Personnel",
+    "register_title":   "Registre Complet du Personnel",
+    "add_recruit":      "➕ Ajouter une Nouvelle Recrue",
+    "form_title":       "Dossier de Recrutement Complet",
+    "section_civil":    "1. ÉTAT CIVIL & COORDONNÉES",
+    "section_qualif":   "2. QUALIFICATIONS & HABILITATIONS LÉGALES",
+    "section_contrat":  "3. CONTRAT ET AFFECTATION",
+    "submit_btn":       "💾 Valider et Créer le Dossier Agent",
+    "search_name":      "Nom / Matricule",
+    "search_ph":        "Rechercher par nom ou matricule...",
+    "search_site":      "Site affecté",
+    "col_matricule":    "Matricule",
+    "col_agent":        "Agent & Contact",
+    "col_statut":       "Statut & Contrat",
+    "col_carte":        "Carte Pro (CQP)",
+    "col_site":         "Site affecté",
+    "archives_title":   "Archives du Personnel (Sortant)",
+    "archives_subtitle":"Historique légal des agents démissionnaires, licenciés ou retraités.",
+    "export_db":        "📥 Exporter Base de Données Globale",
+    "no_archives":      "Aucun agent inactif dans les archives.",
+    "ext_dirs_title":   "Directions Externes (ANEM/Santé)",
+    "inspection_title": "Registre de l'Inspection du Travail"
+  },
+  "statistiques": {
+    "title":            "Tableau de Bord Analytique",
+    "subtitle":         "Statistiques & Analyses — DZ SECURITY",
+    "filter_month":     "Filtrer par mois",
+    "refresh":          "🔄 Rafraîchir",
+    "loading":          "⏳ Chargement…",
+    "export_btn":       "🖨️ Exporter PDF",
+    "section_rh":       "RESSOURCES HUMAINES",
+    "section_finance":  "FINANCES DU MOIS",
+    "section_incidents":"INCIDENTS DU MOIS",
+    "section_ops":      "OPÉRATIONS",
+    "total_agents":     "Agents actifs",
+    "expiring_cards":   "Cartes pro ≤ 60j",
+    "cdd_ending":       "CDD ≤ 15j",
+    "ca_encaisse":      "CA Encaissé",
+    "ca_attente":       "En attente",
+    "incidents_month":  "Incidents",
+    "last_refresh":     "Dernière mise à jour :"
+  },
+  "inspection": {
+    "title":          "SERVICE INSPECTION",
+    "subtitle":       "Contrôle qualité terrain : visites, rondes, rapports d'événements.",
+    "tab_visites":    "Visites de Sites",
+    "tab_controles":  "Contrôles J/N",
+    "tab_rapports":   "Rapports Événements",
+    "tab_escortes":   "Escortes de Fonds"
+  },
+  "logistique": {
+    "title":              "SERVICE LOGISTIQUE",
+    "subtitle":           "Gestion du parc véhicules, équipements et uniformes.",
+    "tab_parc":           "Parc Roulant",
+    "tab_appro":          "Approvisionnement",
+    "tab_maintenance":    "Maintenance",
+    "tab_uniformes":      "Contrôle Uniformes"
+  },
+  "armurerie": {
+    "title":          "SERVICE ARMEMENT ET TRANSMISSION",
+    "subtitle":       "Gestion stricte des armes à feu, munitions et équipements radio.",
+    "tab_verif":      "1. Vérification & Déploiement",
+    "tab_acheminement":"2. Acheminement des Armes",
+    "tab_maintenance": "3. Maintenance & Nettoyage",
+    "tab_uhf":        "4. Vérification Matériel UHF",
+    "sortie_arme":    "Sortie d'Arme (Prise de Service)",
+    "sel_arme":       "-- Sélectionner arme --",
+    "sel_agent":      "-- Sélectionner agent --",
+    "valider_sortie": "Valider Sortie",
+    "retour_coffre":  "Confirmez-vous le retour au coffre de l'arme {{num}} ?"
+  },
+  "formation": {
+    "title":    "SERVICE FORMATION",
+    "subtitle": "Formations réglementaires et perfectionnement des agents."
+  },
+  "planning": {
+    "title":    "PLANNING & PRÉSENCE",
+    "subtitle": "Rotation des agents et suivi des présences."
+  },
+  "incidents": {
+    "title":        "MAIN COURANTE (SOS)",
+    "subtitle":     "Gestion des incidents de sécurité en temps réel.",
+    "no_incidents": "Aucun incident en cours.",
+    "resolve":      "Marquer Résolu",
+    "col_agent":    "Agent",
+    "col_site":     "Site",
+    "col_type":     "Type",
+    "col_heure":    "Heure",
+    "col_statut":   "Statut"
+  },
+  "marches": {
+    "title":    "SERVICE DES MARCHÉS",
+    "subtitle": "Gestion des contrats clients et sites de gardiennage."
+  },
+  "facturation": {
+    "title":    "SERVICE FACTURATION",
+    "subtitle": "Émission et suivi des factures clients."
+  },
+  "recouvrement": {
+    "title":    "SERVICE RECOUVREMENT",
+    "subtitle": "Suivi des encaissements et gestion des créances."
+  },
+  "prospection": {
+    "title":    "SERVICE PROSPECTION",
+    "subtitle": "Pipeline commercial et suivi des prospects."
+  },
+  "social": {
+    "title":    "SERVICE SOCIAL",
+    "subtitle": "Accidents du travail, affiliations CNAS et prestations sociales."
+  },
+  "attachements": {
+    "title":    "Kouchouf (Attachements) & Pré-Paie",
+    "subtitle": "État mensuel des présences pour la paie."
+  },
+  "juridique": {
+    "title":    "SERVICE JURIDIQUE",
+    "subtitle": "Espace du Conseiller Juridique."
+  },
+  "pointage": {
+    "title":    "POINTAGE JOURNALIER",
+    "subtitle": "Validation des pointages en temps réel."
+  },
+  "salleops": {
+    "title":    "GESTION SITES & SALLE OPS",
+    "subtitle": "Tableau de bord opérationnel en temps réel."
+  },
+  "parametres": {
+    "title":    "PARAMÈTRES DU SYSTÈME",
+    "subtitle": "Configuration globale de la plateforme."
+  },
+  "archives": {
+    "title":    "Archives du Personnel",
+    "subtitle": "Ce module est intégré dans \"Service Recrutement\" → onglet \"Archives Personnel\"."
+  },
+  "fields": {
+    "matricule":          "Matricule",
+    "nom":                "Nom",
+    "prenom":             "Prénom",
+    "date_naissance":     "Date de naissance",
+    "cin":                "N° CIN",
+    "telephone":          "Téléphone",
+    "wilaya":             "Wilaya de résidence",
+    "date_embauche":      "Date d'embauche",
+    "qualification":      "Qualification",
+    "type_contrat":       "Type de contrat",
+    "date_fin_contrat":   "Fin de contrat",
+    "site_affecte":       "Site affecté",
+    "statut":             "Statut",
+    "cqp":                "CQP / Formation",
+    "carte_pro":          "N° Carte Professionnelle",
+    "validite_carte_pro": "Validité Carte Pro",
+    "num_anem":           "N° ANEM",
+    "email":              "Email",
+    "password":           "Mot de passe",
+    "role":               "Rôle"
+  }
+}

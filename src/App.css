@@ -1,0 +1,77 @@
+/* RÈGLES D'IMPRESSION GLOBALES */
+@media print {
+  /* On force le format A4 Paysage (Landscape) */
+  @page {
+    size: A4 landscape;
+    margin: 1cm;
+  }
+
+  /* 1. On masque la barre latérale noire et les menus de gauche */
+  div[style*="width: 280px"],
+  div[style*="width: 80px"] {
+    display: none !important;
+  }
+
+  /* 2. On masque explicitement les éléments avec la classe hide-on-print */
+  .hide-on-print {
+    display: none !important;
+  }
+
+  /* 3. On enlève les ombres, les bordures et les fonds gris pour économiser l'encre */
+  body, #root, div {
+    background-color: white !important;
+    box-shadow: none !important;
+  }
+
+  /* 4. On s'assure que le contenu principal prend toute la largeur */
+  div[style*="flex: 1"] {
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  .print-planning {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+
+  /* 5. Affiche les signatures uniquement à l'impression */
+  .show-only-on-print {
+    display: flex !important;
+  }
+}
+
+/* Cache les signatures sur l'écran normal */
+.show-only-on-print {
+    display: none;
+}
+
+/* ─── IMPRESSION : PAGE STATISTIQUES ─── */
+@media print {
+  /* Forcer portrait A4 pour la page stats (plus lisible que landscape) */
+  .stats-print-page {
+    size: A4 portrait !important;
+  }
+
+  /* Éviter les coupures à l'intérieur des cartes */
+  .card {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Les barres flex deviennent colonnes pour tenir en largeur A4 */
+  .stats-flex-print {
+    flex-direction: column !important;
+  }
+
+  /* Supprimer les marges excessives entre sections */
+  .stats-section {
+    margin-bottom: 15px !important;
+  }
+
+  /* Forcer les couleurs des badges et bordures (certains navigateurs les masquent) */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
