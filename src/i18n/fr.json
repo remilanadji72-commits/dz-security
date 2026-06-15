@@ -105,7 +105,13 @@
     "logout":             "Déconnexion",
     "lang_toggle_to_ar":  "عربي 🇩🇿",
     "lang_toggle_to_fr":  "Français 🇫🇷",
-    "erp_system":         "ERP SYSTEM"
+    "erp_system":         "ERP SYSTEM",
+    "logging_in":         "Connexion en cours...",
+    "error_invalid":      "Email ou mot de passe incorrect.",
+    "error_not_confirmed":"Compte non confirmé. Vérifiez votre boîte mail.",
+    "error_too_many":     "Trop de tentatives. Réessayez dans quelques minutes.",
+    "error_network":      "Erreur réseau. Vérifiez votre connexion.",
+    "error_unknown":      "Une erreur est survenue. Réessayez."
   },
   "kpi": {
     "title":       "Poste de Commandement",

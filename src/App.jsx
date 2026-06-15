@@ -59,10 +59,29 @@ function LoginPage() {
   const { t } = useLanguage();
   const [email,    setEmail]    = useState('');
   const [password, setPassword] = useState('');
+  const [loading,  setLoading]  = useState(false);
+  const [error,    setError]    = useState('');
+
+  const mapError = (msg = '') => {
+    if (msg.includes('Invalid login credentials'))  return t('auth.error_invalid');
+    if (msg.includes('Email not confirmed'))         return t('auth.error_not_confirmed');
+    if (msg.includes('Too many requests') || msg.includes('rate limit')) return t('auth.error_too_many');
+    if (msg.includes('fetch') || msg.includes('network') || msg.includes('Failed')) return t('auth.error_network');
+    return t('auth.error_unknown');
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    await supabase.auth.signInWithPassword({ email, password });
+    setError('');
+    setLoading(true);
+    try {
+      const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
+      if (authError) setError(mapError(authError.message));
+    } catch {
+      setError(t('auth.error_network'));
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -77,7 +96,15 @@ function LoginPage() {
             onChange={e => setEmail(e.target.value)} className="form-input" required />
           <input type="password" placeholder={t('auth.password')} value={password}
             onChange={e => setPassword(e.target.value)} className="form-input" required />
-          <button type="submit" className="btn btn-danger btn-full">{t('auth.login')}</button>
+          {error && (
+            <div style={{ backgroundColor: '#fef2f2', border: '1px solid #fca5a5', borderRadius: '4px',
+              padding: '10px 14px', color: '#dc2626', fontSize: '13px', marginBottom: '8px' }}>
+              ⚠️ {error}
+            </div>
+          )}
+          <button type="submit" className="btn btn-danger btn-full" disabled={loading}>
+            {loading ? t('auth.logging_in') : t('auth.login')}
+          </button>
         </form>
       </div>
     </div>
