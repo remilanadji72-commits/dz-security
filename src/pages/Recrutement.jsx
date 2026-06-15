@@ -1,12 +1,17 @@
 import React, { useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { useDataStore } from '../store/useDataStore';
+import { useTranslation } from 'react-i18next';
 import { colors } from '../constants';
+import { Button, Badge, Card, Table, Modal, useModal } from '../components/ui';
 
 function Recrutement() {
   const { agentsData, fetchToutesLesDonnees } = useDataStore();
+  const { t } = useTranslation();
   const [sousMenu, setSousMenu] = useState('contrats');
   const [afficherFormulaire, setAfficherFormulaire] = useState(false);
+  const deleteModal = useModal();
+  const [agentToDelete, setAgentToDelete] = useState(null);
 
   const [matricule, setMatricule] = useState('');
   const [nom, setNom] = useState('');
@@ -78,9 +83,9 @@ function Recrutement() {
       statut_agent: 'ACTIF', heure_pointage: '00:00:00'
     }]);
     if (error) {
-      alert("Erreur lors de l'enregistrement de la recrue.");
+      alert(t('common.error_occurred'));
     } else {
-      alert(`Agent ${nom} ${prenom} recruté avec succès !`);
+      alert(`${t('common.success_saved')} — ${nom} ${prenom}`);
       setAfficherFormulaire(false);
       setMatricule(''); setNom(''); setPrenom(''); setDateNaissance(''); setNumCin('');
       setTelephone(''); setWilaya(''); setDateEmbauche(''); setQualification('Agent Simple');
@@ -102,10 +107,10 @@ function Recrutement() {
       </div>
 
       <div className="nav-tabs">
-        <button onClick={() => setSousMenu('contrats')} className={`nav-tab${sousMenu === 'contrats' ? ' active' : ''}`} style={sousMenu === 'contrats' ? { backgroundColor: colors.blue } : {}}>Fiches Personnel & Contrats</button>
-        <button onClick={() => setSousMenu('organismes')} className={`nav-tab${sousMenu === 'organismes' ? ' active' : ''}`} style={sousMenu === 'organismes' ? { backgroundColor: colors.green } : {}}>Directions Externes</button>
-        <button onClick={() => setSousMenu('inspection')} className={`nav-tab${sousMenu === 'inspection' ? ' active' : ''}`} style={sousMenu === 'inspection' ? { backgroundColor: colors.dark } : {}}>Inspection du Travail</button>
-        <button onClick={() => setSousMenu('archives')} className={`nav-tab${sousMenu === 'archives' ? ' active' : ''}`} style={sousMenu === 'archives' ? { backgroundColor: '#6b7280' } : {}}>Archives Personnel</button>
+        <button onClick={() => setSousMenu('contrats')}   className={`nav-tab${sousMenu === 'contrats'   ? ' active' : ''}`} style={sousMenu === 'contrats'   ? { backgroundColor: colors.blue }   : {}}>{t('recrutement.tab_personnel')}</button>
+        <button onClick={() => setSousMenu('organismes')} className={`nav-tab${sousMenu === 'organismes' ? ' active' : ''}`} style={sousMenu === 'organismes' ? { backgroundColor: colors.green }  : {}}>{t('recrutement.tab_organismes')}</button>
+        <button onClick={() => setSousMenu('inspection')} className={`nav-tab${sousMenu === 'inspection' ? ' active' : ''}`} style={sousMenu === 'inspection' ? { backgroundColor: colors.dark }   : {}}>{t('recrutement.tab_inspection')}</button>
+        <button onClick={() => setSousMenu('archives')}   className={`nav-tab${sousMenu === 'archives'   ? ' active' : ''}`} style={sousMenu === 'archives'   ? { backgroundColor: '#6b7280' } : {}}>{t('recrutement.tab_archives')}</button>
       </div>
 
       {/* 1. FICHES ET CONTRATS */}
@@ -197,22 +202,21 @@ function Recrutement() {
                   </div>
                 </div>
 
-                <button type="submit" disabled={chargement} className="btn btn-primary btn-full" style={{ textTransform: 'uppercase' }}>
-                  💾 Valider et Créer le Dossier Agent
-                </button>
+                <Button type="submit" variant="primary" size="full" loading={chargement} style={{ textTransform: 'uppercase' }}>
+                  {t('recrutement.submit_btn')}
+                </Button>
               </form>
             </div>
           )}
 
-          <div className="card">
-            <div className="flex-between mb-20">
-              <h3 className="section-title">Registre Complet du Personnel</h3>
-              {!afficherFormulaire && (
-                <button onClick={() => setAfficherFormulaire(true)} className="btn btn-primary">
-                  ➕ Ajouter une Nouvelle Recrue
-                </button>
-              )}
-            </div>
+          <Card
+            title={t('recrutement.register_title')}
+            action={!afficherFormulaire && (
+              <Button variant="primary" onClick={() => setAfficherFormulaire(true)}>
+                {t('recrutement.add_recruit')}
+              </Button>
+            )}
+          >
 
             {/* BARRE DE RECHERCHE */}
             <div className="flex-row mb-20" style={{ flexWrap: 'wrap', gap: '10px', alignItems: 'flex-end' }}>
@@ -240,32 +244,28 @@ function Recrutement() {
                 </select>
               </div>
               <div style={{ display: 'flex', gap: '8px' }}>
-                <button
-                  onClick={() => { setRechercheNom(''); setRechercheSite(''); }}
-                  className="btn btn-secondary btn-sm"
-                >
-                  ✖ Réinitialiser
-                </button>
+                <Button variant="secondary" size="sm"
+                  onClick={() => { setRechercheNom(''); setRechercheSite(''); }}>
+                  ✖ {t('common.reset')}
+                </Button>
               </div>
             </div>
             <p className="text-xs text-muted" style={{ marginBottom: '10px' }}>
-              {agentsFiltres.length} agent(s) trouvé(s) sur {agentsData.length} au total
+              {t('common.found_of', { found: agentsFiltres.length, total: agentsData.length })}
             </p>
 
-            <table className="table table-xs">
-              <thead>
-                <tr>
-                  <th>Matricule<br />الرقم الوظيفي</th>
-                  <th>Agent & Contact</th>
-                  <th>Statut & Contrat<br />الحالة</th>
-                  <th>Carte Pro (CQP)<br />تنبيه البطاقة</th>
-                  <th>Site affecté<br />الموقع</th>
-                </tr>
-              </thead>
-              <tbody>
-                {agentsFiltres.length === 0
-                  ? <tr><td colSpan="5" className="empty-state">Aucun agent ne correspond à votre recherche.</td></tr>
-                  : agentsFiltres.map((a) => {
+            <Table
+              size="xs"
+              headers={[
+                t('recrutement.col_matricule'),
+                t('recrutement.col_agent'),
+                t('recrutement.col_statut'),
+                t('recrutement.col_carte'),
+                t('recrutement.col_site'),
+              ]}
+              data={agentsFiltres}
+              emptyMessage={t('common.no_results')}
+              renderRow={(a) => {
                   const joursRestantsCarte = getJoursRestantsCartePro(a.validite_carte_pro);
                   const alerteCarte = joursRestantsCarte <= 60 && a.validite_carte_pro;
                   return (
@@ -280,38 +280,36 @@ function Recrutement() {
                           ? <span style={{ color: colors.green, fontWeight: 'bold' }}>✅ ACTIF</span>
                           : <span style={{ color: colors.red, fontWeight: 'bold' }}>❌ INACTIF</span>
                         }<br />
-                        <span className="badge badge-neutral" style={{ fontSize: '10px' }}>{a.type_contrat || 'CDD'}</span>
+                        <Badge variant="neutral" size="xs">{a.type_contrat || 'CDD'}</Badge>
                       </td>
                       <td>
                         <span className="text-bold">N° {a.num_carte_pro || '---'}</span>
-                        {a.cqp_formation && <span className="badge badge-success" style={{ marginLeft: '5px', fontSize: '9px' }}>CQP OK</span>}<br />
+                        {a.cqp_formation && <Badge variant="success" size="xs" style={{ marginInlineStart: '5px' }}>CQP ✓</Badge>}
+                        <br />
                         {alerteCarte
-                          ? <span className="badge badge-danger" style={{ fontSize: '10px' }}>⚠️ Expire: {a.validite_carte_pro}</span>
+                          ? <Badge variant="danger" size="xs">⚠️ Expire: {a.validite_carte_pro}</Badge>
                           : <span className="text-xxs text-muted">Valide: {a.validite_carte_pro || '---'}</span>
                         }
                       </td>
                       <td className="text-bold" style={{ color: colors.blue }}>{a.site_affecte || '---'}</td>
                     </tr>
                   );
-                })}
-              </tbody>
-            </table>
-          </div>
+              }}
+            />
+          </Card>
         </div>
       )}
 
       {sousMenu === 'organismes' && (
-        <div className="card">
-          <h3 style={{ marginTop: 0, color: colors.green }}>Directions Externes (ANEM/Santé)</h3>
-          <p>Voir le tableau de bord global pour les déclarations ANEM et visites médicales.</p>
-        </div>
+        <Card variant="green" title={t('recrutement.ext_dirs_title')}>
+          <p>{t('recrutement.ext_dirs_title')}</p>
+        </Card>
       )}
 
       {sousMenu === 'inspection' && (
-        <div className="card card-dark">
-          <h3 style={{ marginTop: 0, color: colors.dark }}>Registre de l'Inspection du Travail</h3>
+        <Card variant="dark" title={t('recrutement.inspection_title')}>
           <p>Document légal tenu à la disposition des inspecteurs.</p>
-        </div>
+        </Card>
       )}
 
       {sousMenu === 'archives' && (
@@ -321,7 +319,7 @@ function Recrutement() {
               <h3 className="section-title" style={{ color: '#374151' }}>Archives du Personnel (Sortant)</h3>
               <p className="text-xs text-muted" style={{ marginTop: '5px' }}>Historique légal des agents démissionnaires, licenciés ou retraités.</p>
             </div>
-            <button className="btn btn-secondary btn-sm">📥 Exporter Base de Données Globale</button>
+            <Button variant="secondary" size="sm">{t('recrutement.export_db')}</Button>
           </div>
 
           {/* BARRE DE RECHERCHE ARCHIVES */}
@@ -350,40 +348,57 @@ function Recrutement() {
               </select>
             </div>
             <div style={{ display: 'flex', gap: '8px' }}>
-              <button
-                onClick={() => { setRechercheNomArchive(''); setRechercheSiteArchive(''); }}
-                className="btn btn-secondary btn-sm"
-              >
-                ✖ Réinitialiser
-              </button>
+              <Button variant="secondary" size="sm"
+                onClick={() => { setRechercheNomArchive(''); setRechercheSiteArchive(''); }}>
+                ✖ {t('common.reset')}
+              </Button>
             </div>
           </div>
           <p className="text-xs text-muted" style={{ marginBottom: '10px' }}>
-            {agentsArchivesFiltres.length} agent(s) trouvé(s) sur {agentsInactifs.length} archivé(s)
+            {t('common.found_of', { found: agentsArchivesFiltres.length, total: agentsInactifs.length })}
           </p>
 
-          <table className="table table-xs">
-            <thead>
-              <tr><th>Agent</th><th>Dossier Physique</th><th>Motif de sortie</th><th>Statut Base de données</th></tr>
-            </thead>
-            <tbody>
-              {agentsInactifs.length === 0
-                ? <tr><td colSpan="4" className="empty-state">Aucun agent inactif dans les archives.</td></tr>
-                : agentsArchivesFiltres.length === 0
-                  ? <tr><td colSpan="4" className="empty-state">Aucun agent ne correspond à votre recherche.</td></tr>
-                  : agentsArchivesFiltres.map(a => (
-                    <tr key={`arc-${a.id}`}>
-                      <td className="text-bold">{a.nom}<br /><span style={{ fontSize: '10px', color: '#9ca3af' }}>Mat: {a.matricule}</span></td>
-                      <td><span className="badge badge-neutral">Dossier Archivé Box A-12</span></td>
-                      <td style={{ color: '#ef4444' }}>Fin de contrat (Non renouvelé)</td>
-                      <td style={{ color: '#166534', fontWeight: 'bold' }}>✓ Numérisé et Sauvegardé</td>
-                    </tr>
-                  ))
-              }
-            </tbody>
-          </table>
+          <Table
+            size="xs"
+            headers={['Agent', 'Dossier Physique', 'Motif de sortie', 'Statut BDD']}
+            data={agentsInactifs.length === 0 ? [] : agentsArchivesFiltres}
+            emptyMessage={agentsInactifs.length === 0
+              ? t('recrutement.no_archives')
+              : t('common.no_results')}
+            renderRow={(a) => (
+              <tr key={`arc-${a.id}`}>
+                <td className="text-bold">
+                  {a.nom}<br />
+                  <span className="text-xxs text-muted">Mat: {a.matricule}</span>
+                </td>
+                <td><Badge variant="neutral">Dossier Archivé Box A-12</Badge></td>
+                <td style={{ color: '#ef4444' }}>Fin de contrat (Non renouvelé)</td>
+                <td><Badge variant="success">✓ Numérisé</Badge></td>
+              </tr>
+            )}
+          />
         </div>
       )}
+
+      {/* Modal de confirmation de suppression (démo Phase 2) */}
+      <Modal
+        isOpen={deleteModal.isOpen}
+        onClose={deleteModal.close}
+        title={t('common.confirm_delete')}
+        size="sm"
+        danger
+        confirmLabel={t('common.delete')}
+        onConfirm={() => {
+          // logique suppression à brancher en Phase 4
+          deleteModal.close();
+        }}
+      >
+        <p>
+          {agentToDelete
+            ? `Supprimer l'agent ${agentToDelete.nom} ?`
+            : t('common.confirm_delete')}
+        </p>
+      </Modal>
     </div>
   );
 }
