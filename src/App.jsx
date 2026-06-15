@@ -1,57 +1,63 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from './supabaseClient';
-import { MapContainer, TileLayer, Marker, Popup, Circle } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
 
 import { useDataStore } from './store/useDataStore';
 import { useLanguage } from './context/LanguageContext';
-import { colors } from './constants';
 
-import Sidebar    from './components/Sidebar';
-import Topbar     from './components/layout/Topbar';
-import RoleGuard  from './components/layout/RoleGuard';
-import NotFound   from './pages/NotFound';
-import Facturation  from './pages/Facturation';
-import Armurerie    from './pages/Armurerie';
-import Contrats     from './pages/Contrats';
-import Planning     from './pages/Planning';
-import Incidents    from './pages/Incidents';
-import Attachements from './pages/Attachements';
-import Social       from './pages/Social';
-import Parametres   from './pages/Parametres';
-import Logistique   from './pages/Logistique';
-import Pointage     from './pages/Pointage';
-import Recouvrement from './pages/Recouvrement';
-import SalleOps     from './pages/SalleOps';
-import Inspection   from './pages/Inspection';
-import Formation    from './pages/Formation';
-import Prospection  from './pages/Prospection';
-import Recrutement  from './pages/Recrutement';
-import Juridique    from './pages/Juridique';
-import Statistiques from './pages/Statistiques';
+import Sidebar   from './components/Sidebar';
+import Topbar    from './components/layout/Topbar';
+import RoleGuard from './components/layout/RoleGuard';
 
 import './App.css';
 
-// ── Leaflet icons fix ──────────────────────────────────────────────────────────
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
-  iconUrl:       'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
-  shadowUrl:     'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
-});
-const redIcon = new L.Icon({
-  iconUrl:   'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-  iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41],
-});
-const mapCenter = [36.7525, 3.0419];
+// ── Lazy-loaded pages (each route is a separate chunk) ─────────────────────────
+const Kpi           = lazy(() => import('./pages/Kpi'));
+const Statistiques  = lazy(() => import('./pages/Statistiques'));
+const Parametres    = lazy(() => import('./pages/Parametres'));
+const SalleOps      = lazy(() => import('./pages/SalleOps'));
+const Inspection    = lazy(() => import('./pages/Inspection'));
+const Logistique    = lazy(() => import('./pages/Logistique'));
+const Armurerie     = lazy(() => import('./pages/Armurerie'));
+const Formation     = lazy(() => import('./pages/Formation'));
+const Planning      = lazy(() => import('./pages/Planning'));
+const Incidents     = lazy(() => import('./pages/Incidents'));
+const Contrats      = lazy(() => import('./pages/Contrats'));
+const Facturation   = lazy(() => import('./pages/Facturation'));
+const Recouvrement  = lazy(() => import('./pages/Recouvrement'));
+const Prospection   = lazy(() => import('./pages/Prospection'));
+const Recrutement   = lazy(() => import('./pages/Recrutement'));
+const Social        = lazy(() => import('./pages/Social'));
+const Pointage      = lazy(() => import('./pages/Pointage'));
+const Attachements  = lazy(() => import('./pages/Attachements'));
+const Juridique     = lazy(() => import('./pages/Juridique'));
+const NotFound      = lazy(() => import('./pages/NotFound'));
+
+// ── Loading fallback ──────────────────────────────────────────────────────────
+function LoadingFallback() {
+  return (
+    <div className="page-container text-center" style={{ paddingTop: '80px' }}>
+      <div style={{ fontSize: '36px', marginBottom: '12px', opacity: 0.4 }}>⏳</div>
+      <p className="text-muted">Chargement...</p>
+    </div>
+  );
+}
+
+// ── Archives redirect (tiny, stays inline) ─────────────────────────────────────
+function ArchivesRedirect() {
+  const { t } = useLanguage();
+  return (
+    <div className="page-container text-center">
+      <h1 className="page-title">{t('archives.title')}</h1>
+      <p className="page-subtitle">{t('archives.subtitle')}</p>
+    </div>
+  );
+}
 
 // ── Login page ─────────────────────────────────────────────────────────────────
 function LoginPage() {
   const { t } = useLanguage();
-  const [email, setEmail] = useState('');
+  const [email,    setEmail]    = useState('');
   const [password, setPassword] = useState('');
 
   const handleLogin = async (e) => {
@@ -78,66 +84,7 @@ function LoginPage() {
   );
 }
 
-// ── Command Center (KPI tab) ───────────────────────────────────────────────────
-function CommandCenter() {
-  const { agentsData, incidentsData } = useDataStore();
-  const { t } = useLanguage();
-
-  return (
-    <div className="page-container">
-      <h1 className="page-title">{t('kpi.title')}</h1>
-      <p className="page-subtitle">{t('kpi.subtitle')}</p>
-
-      <div className="flex-row mb-30">
-        <div className="stat-card" style={{ borderLeft: `5px solid ${colors.blue}` }}>
-          <div className="stat-card-label">{t('kpi.total_staff')}</div>
-          <div className="stat-card-value">{agentsData.length}</div>
-        </div>
-        <div className="stat-card" style={{ backgroundColor: colors.red, boxShadow: '0 4px 6px rgba(220,38,38,0.3)' }}>
-          <div className="stat-card-label" style={{ color: 'white' }}>{t('kpi.active_sos')}</div>
-          <div className="stat-card-value-white">{incidentsData.length}</div>
-        </div>
-      </div>
-
-      <div className="card" style={{ height: '400px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        <div style={{ padding: '15px 20px', borderBottom: '1px solid #eee', fontWeight: 'bold' }}>
-          {t('kpi.live_map')}
-        </div>
-        <div style={{ flex: 1 }}>
-          <MapContainer center={mapCenter} zoom={11} style={{ height: '100%', width: '100%' }}>
-            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-            {agentsData.map(a => a.lat && a.lng && (
-              <Marker key={`ag-${a.id}`} position={[a.lat, a.lng]}>
-                <Popup><strong>{a.nom}</strong><br />{a.site_affecte}</Popup>
-              </Marker>
-            ))}
-            {incidentsData.map(inc => inc.lat && inc.lng && (
-              <div key={`inc-${inc.id}`}>
-                <Circle center={[inc.lat, inc.lng]} pathOptions={{ color: 'red', fillColor: 'red' }} radius={500} />
-                <Marker position={[inc.lat, inc.lng]} icon={redIcon}>
-                  <Popup><strong style={{ color: 'red' }}>🚨 SOS : {inc.nom_agent}</strong></Popup>
-                </Marker>
-              </div>
-            ))}
-          </MapContainer>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ── Archives redirect page ─────────────────────────────────────────────────────
-function ArchivesRedirect() {
-  const { t } = useLanguage();
-  return (
-    <div className="page-container text-center">
-      <h1 className="page-title">{t('archives.title')}</h1>
-      <p className="page-subtitle">{t('archives.subtitle')}</p>
-    </div>
-  );
-}
-
-// ── Admin layout (Sidebar + Topbar + content) ─────────────────────────────────
+// ── Admin layout ──────────────────────────────────────────────────────────────
 function AdminLayout({ session }) {
   const { roleAdmin, fetchToutesLesDonnees, initRealtime } = useDataStore();
   const navigate = useNavigate();
@@ -159,12 +106,13 @@ function AdminLayout({ session }) {
         handleLogout={() => supabase.auth.signOut()}
         roleAdmin={roleAdmin}
       />
-
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <Topbar />
         <div style={{ flex: 1, overflowY: 'auto' }}>
           <RoleGuard>
-            <Outlet />
+            <Suspense fallback={<LoadingFallback />}>
+              <Outlet />
+            </Suspense>
           </RoleGuard>
         </div>
       </div>
@@ -186,14 +134,11 @@ function App() {
     <Routes>
       <Route path="/login" element={session ? <Navigate to="/kpi" replace /> : <LoginPage />} />
 
-      <Route
-        path="/"
-        element={session ? <AdminLayout session={session} /> : <Navigate to="/login" replace />}
-      >
+      <Route path="/" element={session ? <AdminLayout session={session} /> : <Navigate to="/login" replace />}>
         <Route index element={<Navigate to="/kpi" replace />} />
 
         {/* Direction Générale */}
-        <Route path="kpi"          element={<CommandCenter />} />
+        <Route path="kpi"          element={<Kpi />} />
         <Route path="statistiques" element={<Statistiques />} />
         <Route path="parametres"   element={<Parametres />} />
 
@@ -223,8 +168,11 @@ function App() {
         <Route path="juridique" element={<Juridique />} />
       </Route>
 
-      {/* Catch-all */}
-      <Route path="*" element={session ? <NotFound /> : <Navigate to="/login" replace />} />
+      <Route path="*" element={
+        <Suspense fallback={<LoadingFallback />}>
+          {session ? <NotFound /> : <Navigate to="/login" replace />}
+        </Suspense>
+      } />
     </Routes>
   );
 }
