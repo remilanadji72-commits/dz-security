@@ -1,0 +1,33 @@
+trigger:
+  - main
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  VERCEL_ORG_ID: 'team_41Q6rxzFATkhQZm9GyalYxN7'
+  VERCEL_PROJECT_ID: 'prj_uSOF0io8gwdRjJpOx7pdygUUklyv'
+
+steps:
+  - task: NodeTool@0
+    inputs:
+      versionSpec: '20.x'
+    displayName: 'Install Node.js 20'
+
+  - script: npm ci
+    displayName: 'Install dependencies'
+
+  - script: npm run test:run
+    displayName: 'Run tests (44 tests)'
+
+  - script: npm run build
+    displayName: 'Build production'
+
+  - script: npx vercel pull --yes --environment=production --token=$(VERCEL_TOKEN)
+    displayName: 'Pull Vercel env vars'
+
+  - script: npx vercel build --prod --token=$(VERCEL_TOKEN)
+    displayName: 'Vercel build'
+
+  - script: npx vercel deploy --prebuilt --prod --token=$(VERCEL_TOKEN)
+    displayName: 'Deploy to Vercel production'
