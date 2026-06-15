@@ -11,7 +11,7 @@ import RoleGuard from './components/layout/RoleGuard';
 
 import './App.css';
 
-// ── Lazy-loaded pages (each route is a separate chunk) ─────────────────────────
+// ── Lazy-loaded pages ──────────────────────────────────────────────────────────
 const Kpi           = lazy(() => import('./pages/Kpi'));
 const Statistiques  = lazy(() => import('./pages/Statistiques'));
 const Parametres    = lazy(() => import('./pages/Parametres'));
@@ -33,7 +33,6 @@ const Attachements  = lazy(() => import('./pages/Attachements'));
 const Juridique     = lazy(() => import('./pages/Juridique'));
 const NotFound      = lazy(() => import('./pages/NotFound'));
 
-// ── Loading fallback ──────────────────────────────────────────────────────────
 function LoadingFallback() {
   return (
     <div className="page-container text-center" style={{ paddingTop: '80px' }}>
@@ -43,7 +42,6 @@ function LoadingFallback() {
   );
 }
 
-// ── Archives redirect (tiny, stays inline) ─────────────────────────────────────
 function ArchivesRedirect() {
   const { t } = useLanguage();
   return (
@@ -54,18 +52,20 @@ function ArchivesRedirect() {
   );
 }
 
-// ── Login page ─────────────────────────────────────────────────────────────────
+// ── Page de connexion unifiée ──────────────────────────────────────────────────
+// Après connexion : GERANT/admin → /kpi   |   pas de profil admin → /mobile
 function LoginPage() {
-  const { t } = useLanguage();
-  const [email,    setEmail]    = useState('');
-  const [password, setPassword] = useState('');
-  const [loading,  setLoading]  = useState(false);
-  const [error,    setError]    = useState('');
+  const { t }                       = useLanguage();
+  const navigate                    = useNavigate();
+  const [email,    setEmail]        = useState('');
+  const [password, setPassword]     = useState('');
+  const [loading,  setLoading]      = useState(false);
+  const [error,    setError]        = useState('');
 
   const mapError = (msg = '') => {
-    if (msg.includes('Invalid login credentials'))  return t('auth.error_invalid');
-    if (msg.includes('Email not confirmed'))         return t('auth.error_not_confirmed');
-    if (msg.includes('Too many requests') || msg.includes('rate limit')) return t('auth.error_too_many');
+    if (msg.includes('Invalid login credentials'))                         return t('auth.error_invalid');
+    if (msg.includes('Email not confirmed'))                               return t('auth.error_not_confirmed');
+    if (msg.includes('Too many requests') || msg.includes('rate limit'))   return t('auth.error_too_many');
     if (msg.includes('fetch') || msg.includes('network') || msg.includes('Failed')) return t('auth.error_network');
     return t('auth.error_unknown');
   };
@@ -75,8 +75,21 @@ function LoginPage() {
     setError('');
     setLoading(true);
     try {
-      const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
-      if (authError) setError(mapError(authError.message));
+      const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password });
+      if (authError) { setError(mapError(authError.message)); return; }
+
+      // Vérifier si l'utilisateur a un profil admin → redirection selon rôle
+      const { data: profil } = await supabase
+        .from('profils_admin')
+        .select('role')
+        .eq('id', data.user.id)
+        .single();
+
+      if (profil?.role) {
+        navigate('/kpi', { replace: true });        // admin → tableau de bord
+      } else {
+        navigate('/mobile', { replace: true });     // agent terrain → app mobile
+      }
     } catch {
       setError(t('auth.error_network'));
     } finally {
@@ -111,11 +124,11 @@ function LoginPage() {
   );
 }
 
-// ── Admin layout ──────────────────────────────────────────────────────────────
+// ── Layout admin (sidebar + topbar + contenu) ──────────────────────────────────
 function AdminLayout({ session }) {
   const { roleAdmin, fetchToutesLesDonnees, initRealtime } = useDataStore();
-  const navigate = useNavigate();
-  const location = useLocation();
+  const navigate  = useNavigate();
+  const location  = useLocation();
 
   useEffect(() => {
     if (!session) return;
@@ -123,7 +136,9 @@ function AdminLayout({ session }) {
     return initRealtime();
   }, [session]);
 
-  const activeRoute = location.pathname.replace('/', '') || 'kpi';
+  // /admin → affiche kpi dans la sidebar comme onglet actif
+  const raw         = location.pathname.replace(/^\//, '') || 'kpi';
+  const activeRoute = raw === 'admin' ? 'kpi' : raw;
 
   return (
     <div style={{ display: 'flex', height: '100vh', backgroundColor: '#f4f6f9' }}>
@@ -147,57 +162,62 @@ function AdminLayout({ session }) {
   );
 }
 
-// ── Root app ──────────────────────────────────────────────────────────────────
+// ── App racine ─────────────────────────────────────────────────────────────────
 function App() {
-  const [session, setSession] = useState(null);
+  const [session,  setSession]  = useState(undefined); // undefined = chargement en cours
+  const [checked,  setChecked]  = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
+    supabase.auth.getSession().then(({ data: { session: s } }) => {
+      setSession(s);
+      setChecked(true);
+    });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
     return () => subscription.unsubscribe();
   }, []);
 
+  // Attendre la vérification de session avant de rendre quoi que ce soit
+  if (!checked) return <LoadingFallback />;
+
   return (
     <Routes>
-      <Route path="/login" element={session ? <Navigate to="/kpi" replace /> : <LoginPage />} />
+      {/* ── Connexion — / + /login + /admin (si pas connecté) ── */}
+      <Route path="/"      element={session ? <Navigate to="/kpi"  replace /> : <LoginPage />} />
+      <Route path="/login" element={session ? <Navigate to="/kpi"  replace /> : <LoginPage />} />
+      <Route path="/admin" element={session ? <Navigate to="/kpi"  replace /> : <LoginPage />} />
 
-      <Route path="/" element={session ? <AdminLayout session={session} /> : <Navigate to="/login" replace />}>
-        <Route index element={<Navigate to="/kpi" replace />} />
+      {/* ── Layout admin avec toutes les pages ── */}
+      <Route element={session ? <AdminLayout session={session} /> : <Navigate to="/" replace />}>
+        <Route path="/kpi"          element={<Kpi />} />
+        <Route path="/statistiques" element={<Statistiques />} />
+        <Route path="/parametres"   element={<Parametres />} />
 
-        {/* Direction Générale */}
-        <Route path="kpi"          element={<Kpi />} />
-        <Route path="statistiques" element={<Statistiques />} />
-        <Route path="parametres"   element={<Parametres />} />
+        <Route path="/salleops"     element={<SalleOps />} />
+        <Route path="/inspection"   element={<Inspection />} />
+        <Route path="/logistique"   element={<Logistique />} />
+        <Route path="/armurerie"    element={<Armurerie />} />
+        <Route path="/formation"    element={<Formation />} />
+        <Route path="/planning"     element={<Planning />} />
+        <Route path="/incidents"    element={<Incidents />} />
 
-        {/* Opérations */}
-        <Route path="salleops"   element={<SalleOps />} />
-        <Route path="inspection" element={<Inspection />} />
-        <Route path="logistique" element={<Logistique />} />
-        <Route path="armurerie"  element={<Armurerie />} />
-        <Route path="formation"  element={<Formation />} />
-        <Route path="planning"   element={<Planning />} />
-        <Route path="incidents"  element={<Incidents />} />
+        <Route path="/marches"      element={<Contrats />} />
+        <Route path="/facturation"  element={<Facturation />} />
+        <Route path="/recouvrement" element={<Recouvrement />} />
+        <Route path="/prospection"  element={<Prospection />} />
 
-        {/* Commercial */}
-        <Route path="marches"      element={<Contrats />} />
-        <Route path="facturation"  element={<Facturation />} />
-        <Route path="recouvrement" element={<Recouvrement />} />
-        <Route path="prospection"  element={<Prospection />} />
+        <Route path="/recrutement"  element={<Recrutement />} />
+        <Route path="/social"       element={<Social />} />
+        <Route path="/pointage"     element={<Pointage />} />
+        <Route path="/attachements" element={<Attachements />} />
+        <Route path="/archives"     element={<ArchivesRedirect />} />
 
-        {/* Ressources Humaines */}
-        <Route path="recrutement"  element={<Recrutement />} />
-        <Route path="social"       element={<Social />} />
-        <Route path="pointage"     element={<Pointage />} />
-        <Route path="attachements" element={<Attachements />} />
-        <Route path="archives"     element={<ArchivesRedirect />} />
-
-        {/* Juridique */}
-        <Route path="juridique" element={<Juridique />} />
+        <Route path="/juridique"    element={<Juridique />} />
       </Route>
 
+      {/* ── 404 ── */}
       <Route path="*" element={
         <Suspense fallback={<LoadingFallback />}>
-          {session ? <NotFound /> : <Navigate to="/login" replace />}
+          {session ? <NotFound /> : <Navigate to="/" replace />}
         </Suspense>
       } />
     </Routes>
