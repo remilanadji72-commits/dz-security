@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { useDataStore } from '../store/useDataStore';
 import { colors } from '../constants';
+import { exportPlanDefenseToPDF } from '../utils/export';
 
 function SalleOps() {
   const { contratsData } = useDataStore();
@@ -30,7 +31,6 @@ function SalleOps() {
     else alert("Erreur de validation");
   };
 
-  const ouvrirDocument = (type) => alert(`Simulation : Ouverture du ${type} en PDF...`);
 
   const genererRapportClient = () => {
     if (passations.length === 0) { alert("Aucune donnée disponible pour générer un rapport."); return; }
@@ -166,7 +166,7 @@ function SalleOps() {
                   </td>
                   <td className="text-right flex-row" style={{ justifyContent: 'flex-end' }}>
                     <input type="file" accept=".pdf" onChange={(e) => { if (e.target.files[0]) alert(`Le fichier ${e.target.files[0].name} a été importé pour ${c.nom_site}.`); }} style={{ fontSize: '11px', maxWidth: '180px' }} />
-                    <button onClick={() => ouvrirDocument('Plan de Défense')} className="btn btn-dark btn-xs">👀 Voir le Plan</button>
+                    <button onClick={() => exportPlanDefenseToPDF(c)} className="btn btn-dark btn-xs">📄 Générer Plan PDF</button>
                   </td>
                 </tr>
               ))}

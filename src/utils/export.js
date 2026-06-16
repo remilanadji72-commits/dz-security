@@ -207,3 +207,212 @@ export function exportPlanningToPDF({ site, mois, brigades, lignes, determinerAf
 
   doc.save(`Planning_${site}_${mois}.pdf`);
 }
+
+// ── Plan de Défense PDF ───────────────────────────────────────────────────────
+export function exportPlanDefenseToPDF(contrat) {
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const W = 210;
+  const dateEd = new Date().toLocaleDateString('fr-DZ');
+  const ref = `PD-${String(contrat.id || '000').padStart(4, '0')}-${new Date().getFullYear()}`;
+
+  // ── En-tête ──
+  doc.setFillColor(43, 48, 59);
+  doc.rect(0, 0, W, 38, 'F');
+  doc.setTextColor(231, 76, 60);
+  doc.setFontSize(20);
+  doc.setFont('helvetica', 'bold');
+  doc.text('DZ SECURITY', 14, 16);
+  doc.setTextColor(180, 180, 180);
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Sécurité & Gardiennage — ERP SYSTEM', 14, 24);
+  doc.setTextColor(255);
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.text('PLAN DE DÉFENSE', W - 14, 15, { align: 'right' });
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.text(`Réf. : ${ref}`, W - 14, 22, { align: 'right' });
+  doc.text(`Édité le : ${dateEd}`, W - 14, 29, { align: 'right' });
+
+  const statut = contrat.plan_defense_valide;
+  doc.setFillColor(...(statut ? [22, 163, 74] : [220, 38, 38]));
+  doc.roundedRect(14, 31, statut ? 42 : 58, 6, 2, 2, 'F');
+  doc.setTextColor(255);
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'bold');
+  doc.text(statut ? 'PLAN VALIDÉ' : 'EN ATTENTE DE VALIDATION', 16, 35.5);
+
+  // ── Section 1 : Identification ──
+  let y = 48;
+  doc.setTextColor(43, 48, 59);
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.text('1. IDENTIFICATION DU SITE GARDIENNÉ', 14, y);
+  doc.setDrawColor(231, 76, 60);
+  doc.setLineWidth(0.5);
+  doc.line(14, y + 2, W - 14, y + 2);
+  y += 8;
+
+  const clientNom = contrat.clients?.nom_entreprise || contrat.client || '—';
+  autoTable(doc, {
+    body: [
+      ['Site (Dénomination)', contrat.nom_site || '—'],
+      ['Client / Donneur d\'ordre', clientNom],
+      ['Coordonnées GPS', contrat.site_gps_lat && contrat.site_gps_lng
+        ? `${Number(contrat.site_gps_lat).toFixed(6)}, ${Number(contrat.site_gps_lng).toFixed(6)}`
+        : 'Non renseignées'],
+      ['Date de prise d\'effet', contrat.date_debut
+        ? new Date(contrat.date_debut).toLocaleDateString('fr-DZ') : '—'],
+      ['Date d\'échéance', contrat.date_fin
+        ? new Date(contrat.date_fin).toLocaleDateString('fr-DZ') : '—'],
+      ['Statut du plan', statut ? 'VALIDÉ — En vigueur' : 'NON VALIDÉ — En attente'],
+    ],
+    startY: y,
+    columnStyles: {
+      0: { fontStyle: 'bold', fillColor: [248, 250, 252], cellWidth: 70 },
+      1: { cellWidth: 116 },
+    },
+    styles: { fontSize: 9, cellPadding: 4 },
+    margin: { left: 14, right: 14 },
+    tableLineColor: [229, 231, 235],
+    tableLineWidth: 0.3,
+  });
+  y = doc.lastAutoTable.finalY + 10;
+
+  // ── Section 2 : Dispositif de sécurité ──
+  doc.setTextColor(43, 48, 59);
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.text('2. DISPOSITIF DE SÉCURITÉ DÉPLOYÉ', 14, y);
+  doc.setDrawColor(231, 76, 60);
+  doc.line(14, y + 2, W - 14, y + 2);
+  y += 8;
+
+  autoTable(doc, {
+    head: [['Vacation', 'Horaires', 'Effectif Min.', 'Mission principale']],
+    body: [
+      ['Jour', '06:00 – 18:00', '1 agent', 'Contrôle des accès, filtrage des entrées/sorties, rondes'],
+      ['Nuit', '18:00 – 06:00', '1 agent', 'Surveillance périmétrique, rondes horaires, levée de doute'],
+      ['Week-end / Férié', 'Continu (24h)', '1 agent min.', 'Garde statique renforcée selon consignes client'],
+    ],
+    startY: y,
+    headStyles: { fillColor: [43, 48, 59], textColor: 255, fontStyle: 'bold' },
+    styles: { fontSize: 8, cellPadding: 3 },
+    alternateRowStyles: { fillColor: [249, 250, 251] },
+    margin: { left: 14, right: 14 },
+  });
+  y = doc.lastAutoTable.finalY + 10;
+
+  // ── Section 3 : Procédures d'urgence ──
+  doc.setTextColor(43, 48, 59);
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.text('3. PROCÉDURES D\'URGENCE', 14, y);
+  doc.setDrawColor(231, 76, 60);
+  doc.line(14, y + 2, W - 14, y + 2);
+  y += 8;
+
+  autoTable(doc, {
+    head: [['Scénario', 'Conduite à tenir (CAT)']],
+    body: [
+      ['Intrusion / Effraction',
+        '1. Déclencher l\'alarme sonore\n2. Alerter la centrale DZ Security (SOS in-app)\n3. Appeler la Police (17) sans confrontation directe\n4. Sécuriser les accès et attendre les secours'],
+      ['Incendie',
+        '1. Déclencher le déclencheur manuel (si présent)\n2. Évacuer le site selon le plan d\'évacuation\n3. Appeler les Pompiers (14)\n4. Ne jamais ouvrir les portes coupe-feu'],
+      ['Agression / Menace',
+        '1. Ne pas résister ni provoquer\n2. Mémoriser les signalements (description, véhicule)\n3. Alerter la centrale via SOS app\n4. Porter plainte après intervention des forces de l\'ordre'],
+      ['Malaise d\'un agent',
+        '1. Alerter immédiatement la centrale DZ Security\n2. Appeler le SAMU (15)\n3. Ne pas laisser l\'agent seul\n4. Contacter le responsable opérations'],
+    ],
+    startY: y,
+    headStyles: { fillColor: [43, 48, 59], textColor: 255, fontStyle: 'bold' },
+    styles: { fontSize: 7.5, cellPadding: 3 },
+    columnStyles: { 0: { cellWidth: 45, fontStyle: 'bold', fillColor: [254, 242, 242] }, 1: { cellWidth: 141 } },
+    alternateRowStyles: { fillColor: [249, 250, 251] },
+    margin: { left: 14, right: 14 },
+  });
+  y = doc.lastAutoTable.finalY + 10;
+
+  // ── Section 4 : Contacts d'urgence ──
+  doc.setTextColor(43, 48, 59);
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.text('4. CONTACTS D\'URGENCE', 14, y);
+  doc.setDrawColor(231, 76, 60);
+  doc.line(14, y + 2, W - 14, y + 2);
+  y += 8;
+
+  autoTable(doc, {
+    head: [['Service', 'Numéro', 'Disponibilité']],
+    body: [
+      ['Police Nationale / Gendarmerie', '17 / 1548', '24h/24 — 7j/7'],
+      ['Pompiers / Protection Civile', '14', '24h/24 — 7j/7'],
+      ['SAMU / Urgences médicales', '15 / 1021', '24h/24 — 7j/7'],
+      ['DZ Security — Centrale OPS', 'Voir application mobile', '24h/24 — 7j/7'],
+      ['Responsable Opérations DZ Security', 'Voir contacts internes', 'Heures ouvrables (astreinte nuit)'],
+    ],
+    startY: y,
+    headStyles: { fillColor: [43, 48, 59], textColor: 255, fontStyle: 'bold' },
+    styles: { fontSize: 8, cellPadding: 3 },
+    columnStyles: { 1: { fontStyle: 'bold', textColor: [231, 76, 60] } },
+    alternateRowStyles: { fillColor: [249, 250, 251] },
+    margin: { left: 14, right: 14 },
+  });
+  y = doc.lastAutoTable.finalY + 10;
+
+  // ── Section 5 : Clauses spécifiques (si présentes) ──
+  if (contrat.clauses_specifiques) {
+    if (y > 240) { doc.addPage(); y = 20; }
+    doc.setTextColor(43, 48, 59);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text('5. CLAUSES SPÉCIFIQUES DU CONTRAT', 14, y);
+    doc.setDrawColor(231, 76, 60);
+    doc.line(14, y + 2, W - 14, y + 2);
+    y += 8;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8.5);
+    doc.setTextColor(55, 65, 81);
+    const lignes = doc.splitTextToSize(contrat.clauses_specifiques, W - 28);
+    doc.text(lignes, 14, y);
+    y += lignes.length * 5 + 10;
+  }
+
+  // ── Signatures ──
+  if (y > 245) { doc.addPage(); y = 20; }
+  const numSection = contrat.clauses_specifiques ? 6 : 5;
+  doc.setTextColor(43, 48, 59);
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.text(`${numSection}. APPROBATION ET SIGNATURES`, 14, y);
+  doc.setDrawColor(231, 76, 60);
+  doc.line(14, y + 2, W - 14, y + 2);
+  y += 12;
+
+  doc.setFontSize(8.5);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(75, 85, 99);
+  doc.text('DZ SECURITY — Direction des Opérations', 40, y, { align: 'center' });
+  doc.text('LE CLIENT', 170, y, { align: 'center' });
+  doc.text('(Signature & Cachet)', 40, y + 6, { align: 'center' });
+  doc.text(`(${clientNom})`, 170, y + 6, { align: 'center' });
+  doc.setDrawColor(150);
+  doc.setLineWidth(0.4);
+  doc.line(14, y + 22, 66, y + 22);
+  doc.line(144, y + 22, 196, y + 22);
+
+  // ── Pied de page ──
+  const pages = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= pages; i++) {
+    doc.setPage(i);
+    doc.setFontSize(7);
+    doc.setTextColor(150);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`DZ Security ERP — Plan de Défense — Réf. ${ref} — Confidentiel`, W / 2, 292, { align: 'center' });
+    doc.text(`Page ${i} / ${pages}`, W - 14, 292, { align: 'right' });
+  }
+
+  const nomFichier = (contrat.nom_site || 'site').replace(/[^a-zA-Z0-9_\-]/g, '_');
+  doc.save(`PlanDefense_${nomFichier}_${new Date().getFullYear()}.pdf`);
+}
