@@ -187,7 +187,7 @@ function Contrats() {
         <div style={{ flex: '1 1 300px' }} className="card card-green">
           <h3 style={{ marginTop: 0, color: '#1f2937' }}>1-3. Élaboration d'Avenants</h3>
           <form onSubmit={creerAvenant} className="flex-col">
-            <select onChange={(e) => setContratPourAvenant(e.target.value)} className="form-select" required>
+            <select value={contratPourAvenant} onChange={(e) => setContratPourAvenant(e.target.value)} className="form-select" required>
               <option value="">-- Sélectionner le marché à prolonger --</option>
               {listeContrats.map(c => <option key={c.id} value={c.id}>{c.type_document} : {c.clients?.nom_entreprise} ({c.nom_site})</option>)}
             </select>

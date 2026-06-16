@@ -155,8 +155,8 @@ function SalleOps() {
               <tr><th>Site (Client)</th><th>Statut du Plan de Défense</th><th className="text-right">Document</th></tr>
             </thead>
             <tbody>
-              {contratsData.map((c, i) => (
-                <tr key={i}>
+              {contratsData.map((c) => (
+                <tr key={c.id}>
                   <td className="text-bold">{c.nom_site}</td>
                   <td>
                     {c.plan_defense_valide

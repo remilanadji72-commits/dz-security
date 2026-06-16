@@ -48,12 +48,12 @@ function Kpi() {
         <div style={{ flex: 1 }}>
           <MapContainer center={mapCenter} zoom={11} style={{ height: '100%', width: '100%' }}>
             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-            {agentsData.map(a => a.lat && a.lng && (
+            {agentsData.filter(a => a.lat != null && a.lng != null).map(a => (
               <Marker key={`ag-${a.id}`} position={[a.lat, a.lng]}>
                 <Popup><strong>{a.nom}</strong><br />{a.site_affecte}</Popup>
               </Marker>
             ))}
-            {incidentsData.map(inc => inc.lat && inc.lng && (
+            {incidentsData.filter(inc => inc.lat != null && inc.lng != null).map(inc => (
               <Fragment key={`inc-${inc.id}`}>
                 <Circle center={[inc.lat, inc.lng]} pathOptions={{ color: 'red', fillColor: 'red' }} radius={500} />
                 <Marker position={[inc.lat, inc.lng]} icon={redIcon}>

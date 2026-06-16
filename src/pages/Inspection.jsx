@@ -148,7 +148,7 @@ function Inspection() {
                   </tr>
                 ))}
                 {contratsData.slice(0, 2).map((c, i) => (
-                  <tr key={i}>
+                  <tr key={c.id}>
                     <td className="text-bold">{i === 0 ? "Aujourd'hui" : 'Prochainement'}</td>
                     <td>{c.nom_site}</td>
                     <td><span className="badge badge-info">AUDIT DE SÉCURITÉ</span></td>

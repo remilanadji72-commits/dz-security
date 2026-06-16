@@ -536,12 +536,12 @@
 /* Nav tabs */
 [dir="rtl"] .nav-tabs { flex-direction: row-reverse; }
 
-/* Cards avec bordure colorée */
-[dir="rtl"] .card-blue  { border-left: none; border-right: 4px solid var(--blue); }
-[dir="rtl"] .card-red   { border-left: none; border-right: 4px solid var(--red); }
-[dir="rtl"] .card-green { border-left: none; border-right: 4px solid var(--green); }
-[dir="rtl"] .card-dark  { border-left: none; border-right: 4px solid var(--dark); }
-[dir="rtl"] .card-yellow{ border-left: none; border-right: 4px solid var(--yellow); }
+/* Cards avec bordure colorée — RTL : déplace l'accent de border-top vers border-right */
+[dir="rtl"] .card-blue  { border-top: none; border-right: 4px solid var(--color-blue); }
+[dir="rtl"] .card-red   { border-top: none; border-right: 4px solid var(--color-red); }
+[dir="rtl"] .card-green { border-top: none; border-right: 4px solid var(--color-green); }
+[dir="rtl"] .card-dark  { border-top: none; border-right: 4px solid var(--color-dark); }
+[dir="rtl"] .card-yellow{ border-top: none; border-right: 4px solid #f59e0b; }
 
 /* stat-card */
 [dir="rtl"] .stat-card { text-align: right; }

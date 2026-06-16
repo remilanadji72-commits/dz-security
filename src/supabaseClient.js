@@ -1,22 +1,30 @@
 import { createClient } from '@supabase/supabase-js'
 
-const FALLBACK_URL = 'https://kuyvkmscqvmhgqrgzqhd.supabase.co'
-const FALLBACK_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt1eXZrbXNjcXZtaGdxcmd6cWhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwODc2NzUsImV4cCI6MjA5NTY2MzY3NX0.qA_6Yc4jFDV3epvRoH8-A_f4GXeHT6XjN9O4sqmRJ0Y'
-
-// Nettoie l'URL : retire tout path éventuel (/rest/v1/, etc.) et espaces
 function cleanUrl(raw) {
-  if (!raw || typeof raw !== 'string') return FALLBACK_URL
+  if (!raw || typeof raw !== 'string') return null
   const trimmed = raw.trim()
-  if (!trimmed.startsWith('http')) return FALLBACK_URL
+  if (!trimmed.startsWith('http')) return null
   try {
     const { origin } = new URL(trimmed)
-    return origin  // garde uniquement https://xxx.supabase.co
+    return origin
   } catch {
-    return FALLBACK_URL
+    return null
   }
 }
 
-const supabaseUrl    = cleanUrl(import.meta.env.VITE_SUPABASE_URL)
-const supabaseAnonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY || '').trim() || FALLBACK_KEY
+const supabaseUrl     = cleanUrl(import.meta.env.VITE_SUPABASE_URL)
+const supabaseAnonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY || '').trim() || null
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error(
+    '[Supabase] Variables d\'environnement manquantes.\n' +
+    '  VITE_SUPABASE_URL     :', supabaseUrl     ? '✓' : '✗ MANQUANT',
+    '\n  VITE_SUPABASE_ANON_KEY:', supabaseAnonKey ? '✓' : '✗ MANQUANT',
+    '\nVérifiez votre fichier .env ou les settings Vercel.'
+  )
+}
+
+export const supabase = createClient(
+  supabaseUrl     ?? 'https://placeholder.supabase.co',
+  supabaseAnonKey ?? 'placeholder-key'
+)

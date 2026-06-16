@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { supabase } from '../supabaseClient';
 import { useDataStore } from '../store/useDataStore';
 import { useTranslation } from 'react-i18next';
@@ -11,9 +11,6 @@ function Recrutement() {
   const [sousMenu, setSousMenu] = useState('contrats');
   const [afficherFormulaire, setAfficherFormulaire] = useState(false);
   const deleteModal = useModal();
-  // TODO Phase 4 : brancher la suppression d'agent
-  // eslint-disable-next-line no-unused-vars
-  const [agentToDelete, setAgentToDelete] = useState(null);
 
   const [matricule, setMatricule] = useState('');
   const [nom, setNom] = useState('');
@@ -37,25 +34,42 @@ function Recrutement() {
   const [rechercheNomArchive, setRechercheNomArchive] = useState('');
   const [rechercheSiteArchive, setRechercheSiteArchive] = useState('');
 
-  const sitesUniques = [...new Set(agentsData.map(a => a.site_affecte).filter(Boolean))].sort();
+  const sitesUniques = useMemo(
+    () => [...new Set(agentsData.map(a => a.site_affecte).filter(Boolean))].sort(),
+    [agentsData]
+  );
 
-  const agentsFiltres = agentsData.filter(a => {
-    const matchNom = rechercheNom === '' ||
-      (a.nom || '').toLowerCase().includes(rechercheNom.toLowerCase()) ||
-      (a.matricule || '').toLowerCase().includes(rechercheNom.toLowerCase());
-    const matchSite = rechercheSite === '' || (a.site_affecte || '') === rechercheSite;
-    return matchNom && matchSite;
-  });
+  const agentsFiltres = useMemo(
+    () => agentsData.filter(a => {
+      const matchNom = rechercheNom === '' ||
+        (a.nom || '').toLowerCase().includes(rechercheNom.toLowerCase()) ||
+        (a.matricule || '').toLowerCase().includes(rechercheNom.toLowerCase());
+      const matchSite = rechercheSite === '' || (a.site_affecte || '') === rechercheSite;
+      return matchNom && matchSite;
+    }),
+    [agentsData, rechercheNom, rechercheSite]
+  );
 
-  const agentsInactifs = agentsData.filter(a => a.statut_agent === 'INACTIF');
-  const sitesUniquesArchive = [...new Set(agentsInactifs.map(a => a.site_affecte).filter(Boolean))].sort();
-  const agentsArchivesFiltres = agentsInactifs.filter(a => {
-    const matchNom = rechercheNomArchive === '' ||
-      (a.nom || '').toLowerCase().includes(rechercheNomArchive.toLowerCase()) ||
-      (a.matricule || '').toLowerCase().includes(rechercheNomArchive.toLowerCase());
-    const matchSite = rechercheSiteArchive === '' || (a.site_affecte || '') === rechercheSiteArchive;
-    return matchNom && matchSite;
-  });
+  const agentsInactifs = useMemo(
+    () => agentsData.filter(a => a.statut_agent === 'INACTIF'),
+    [agentsData]
+  );
+
+  const sitesUniquesArchive = useMemo(
+    () => [...new Set(agentsInactifs.map(a => a.site_affecte).filter(Boolean))].sort(),
+    [agentsInactifs]
+  );
+
+  const agentsArchivesFiltres = useMemo(
+    () => agentsInactifs.filter(a => {
+      const matchNom = rechercheNomArchive === '' ||
+        (a.nom || '').toLowerCase().includes(rechercheNomArchive.toLowerCase()) ||
+        (a.matricule || '').toLowerCase().includes(rechercheNomArchive.toLowerCase());
+      const matchSite = rechercheSiteArchive === '' || (a.site_affecte || '') === rechercheSiteArchive;
+      return matchNom && matchSite;
+    }),
+    [agentsInactifs, rechercheNomArchive, rechercheSiteArchive]
+  );
 
   const getJoursRestantsCartePro = (dateStr) => {
     if (!dateStr) return 999;
@@ -395,11 +409,7 @@ function Recrutement() {
           deleteModal.close();
         }}
       >
-        <p>
-          {agentToDelete
-            ? `Supprimer l'agent ${agentToDelete.nom} ?`
-            : t('common.confirm_delete')}
-        </p>
+        <p>{t('common.confirm_delete')}</p>
       </Modal>
     </div>
   );

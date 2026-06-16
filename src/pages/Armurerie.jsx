@@ -18,7 +18,7 @@ function Armurerie() {
     }
     setLoading(true);
     try {
-      const { error } = await supabase.from('armes').update({ statut: 'DEPLOYEE', agent_id: agentSelectionne }).eq('id', armeSelectionnee);
+      const { error } = await supabase.from('armes').update({ statut: 'AFFECTEE', agent_id: agentSelectionne }).eq('id', armeSelectionnee);
       if (error) throw error;
       setArmeSelectionnee('');
       setAgentSelectionne('');
@@ -91,13 +91,13 @@ function Armurerie() {
                     <td>
                       {arme.statut === 'AU_COFFRE'
                         ? <span className="badge badge-success">🔐 COFFRE</span>
-                        : <span className="badge badge-danger">🔥 DÉPLOYÉE</span>
+                        : <span className="badge badge-danger">🔥 AFFECTÉE</span>
                       }
                     </td>
                     <td>
                       <div className="flex-between">
                         <span className="text-bold" style={{ color: colors.blue }}>{arme.agents ? arme.agents.nom : ''}</span>
-                        {arme.statut === 'DEPLOYEE' && (
+                        {arme.statut === 'AFFECTEE' && (
                           <button onClick={() => restituerArme(arme.id, arme.numero_serie)} className="btn btn-outline-success btn-xs">
                             📥 Restituer
                           </button>

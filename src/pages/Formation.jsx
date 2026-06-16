@@ -85,7 +85,7 @@ function Formation() {
             </thead>
             <tbody>
               {agentsData.map((a, i) => (
-                <tr key={i}>
+                <tr key={a.id}>
                   <td className="text-bold">{a.nom}</td>
                   <td>Mise à jour des consignes d'évacuation</td>
                   <td style={{ color: colors.dark }}>{a.site_affecte || '---'}</td>

@@ -82,8 +82,8 @@ function Facturation() {
               <tr><th>Agent</th><th>Site</th><th>Heure Pointage</th><th>Statut Jours</th></tr>
             </thead>
             <tbody>
-              {agentsData.map((a, i) => (
-                <tr key={i}>
+              {agentsData.map((a) => (
+                <tr key={a.id}>
                   <td className="text-bold">{a.nom}</td>
                   <td>{a.site_affecte}</td>
                   <td className="text-bold" style={{ color: colors.blue }}>{a.heure_pointage}</td>
@@ -155,7 +155,7 @@ function Facturation() {
             <div style={{ flex: '2 1 200px' }}><label className="form-label-sm">CLIENT *</label><input type="text" placeholder="Nom de l'entreprise" required value={nouvelleFacture.client} onChange={(e) => setNouvelleFacture({ ...nouvelleFacture, client: e.target.value })} className="form-input" /></div>
             <div style={{ flex: '1 1 150px' }}><label className="form-label-sm">MOIS</label>
               <select value={nouvelleFacture.mois} onChange={(e) => setNouvelleFacture({ ...nouvelleFacture, mois: e.target.value })} className="form-select">
-                <option value="JANVIER">JANVIER</option><option value="FEVRIER">FEVRIER</option><option value="MARS">MARS</option><option value="AVRIL">AVRIL</option><option value="MAI">MAI</option><option value="JUIN">JUIN</option>
+                <option value="JANVIER">JANVIER</option><option value="FEVRIER">FEVRIER</option><option value="MARS">MARS</option><option value="AVRIL">AVRIL</option><option value="MAI">MAI</option><option value="JUIN">JUIN</option><option value="JUILLET">JUILLET</option><option value="AOUT">AOUT</option><option value="SEPTEMBRE">SEPTEMBRE</option><option value="OCTOBRE">OCTOBRE</option><option value="NOVEMBRE">NOVEMBRE</option><option value="DECEMBRE">DECEMBRE</option>
               </select>
             </div>
             <div style={{ flex: '2 1 200px' }}><label className="form-label-sm">DÉSIGNATION</label><input type="text" placeholder="Ex: Prestation Gardiennage 31 Jours" value={nouvelleFacture.designation} onChange={(e) => setNouvelleFacture({ ...nouvelleFacture, designation: e.target.value })} className="form-input" /></div>

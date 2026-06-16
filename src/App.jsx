@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from 'react';
+import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from './supabaseClient';
 
@@ -56,7 +56,6 @@ function ArchivesRedirect() {
 // Après connexion : GERANT/admin → /kpi   |   pas de profil admin → /mobile
 function LoginPage() {
   const { t }                       = useLanguage();
-  const navigate                    = useNavigate();
   const [email,    setEmail]        = useState('');
   const [password, setPassword]     = useState('');
   const [loading,  setLoading]      = useState(false);
@@ -75,21 +74,9 @@ function LoginPage() {
     setError('');
     setLoading(true);
     try {
-      const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password });
+      const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
       if (authError) { setError(mapError(authError.message)); return; }
-
-      // Vérifier si l'utilisateur a un profil admin → redirection selon rôle
-      const { data: profil } = await supabase
-        .from('profils_admin')
-        .select('role')
-        .eq('id', data.user.id)
-        .single();
-
-      if (profil?.role) {
-        navigate('/kpi', { replace: true });        // admin → tableau de bord
-      } else {
-        navigate('/mobile', { replace: true });     // agent terrain → app mobile
-      }
+      // La redirection est gérée par onAuthStateChange + resolveRole dans App
     } catch {
       setError(t('auth.error_network'));
     } finally {
@@ -166,30 +153,70 @@ function AdminLayout({ session }) {
 
 // ── App racine ─────────────────────────────────────────────────────────────────
 function App() {
-  const [session,  setSession]  = useState(undefined); // undefined = chargement en cours
+  const [session,  setSession]  = useState(undefined); // undefined = init
+  const [isAdmin,  setIsAdmin]  = useState(undefined); // undefined = rôle en cours de résolution
   const [checked,  setChecked]  = useState(false);
+  // Mémorise le dernier userId pour lequel on a résolu le rôle
+  // → évite de re-résoudre (et de flasher) lors des TOKEN_REFRESHED
+  const resolvedForUserId = useRef(null);
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session: s } }) => {
-      setSession(s);
-      setChecked(true);
-    });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
-    return () => subscription.unsubscribe();
+  const resolveRole = useCallback(async (userId) => {
+    if (!userId) { setIsAdmin(false); resolvedForUserId.current = null; return; }
+    try {
+      const { data } = await supabase.from('profils_admin').select('role').eq('id', userId).maybeSingle();
+      setIsAdmin(!!data?.role);
+      resolvedForUserId.current = userId;
+    } catch {
+      setIsAdmin(false);
+    }
   }, []);
 
-  // Attendre la vérification de session avant de rendre quoi que ce soit
+  useEffect(() => {
+    // Chargement initial — on attend la résolution du rôle avant d'afficher quoi que ce soit
+    supabase.auth.getSession().then(async ({ data: { session: s } }) => {
+      setSession(s ?? null);
+      await resolveRole(s?.user?.id ?? null);
+      setChecked(true);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => {
+      setSession(s ?? null);
+      if (!s) {
+        setIsAdmin(false);
+        resolvedForUserId.current = null;
+      } else if (s.user.id !== resolvedForUserId.current) {
+        // Nouvel utilisateur (premier login) — résoudre le rôle
+        // isAdmin passe à undefined pendant la résolution → LoadingFallback affiché
+        setIsAdmin(undefined);
+        resolveRole(s.user.id);
+      }
+      // Même userId (TOKEN_REFRESHED, USER_UPDATED, …) : isAdmin inchangé, pas de flash
+    });
+    return () => subscription.unsubscribe();
+  }, [resolveRole]);
+
+  // Attendre la vérification initiale de session + rôle
   if (!checked) return <LoadingFallback />;
+
+  // Destination après connexion selon le rôle
+  const homeUrl = isAdmin ? '/kpi' : '/mobile';
+  // Afficher le loader si session existante mais rôle en cours de résolution
+  const loginRedirect = isAdmin === undefined ? <LoadingFallback /> : <Navigate to={homeUrl} replace />;
 
   return (
     <Routes>
       {/* ── Connexion — / + /login + /admin (si pas connecté) ── */}
-      <Route path="/"      element={session ? <Navigate to="/kpi"  replace /> : <LoginPage />} />
-      <Route path="/login" element={session ? <Navigate to="/kpi"  replace /> : <LoginPage />} />
-      <Route path="/admin" element={session ? <Navigate to="/kpi"  replace /> : <LoginPage />} />
+      <Route path="/"      element={session ? loginRedirect : <LoginPage />} />
+      <Route path="/login" element={session ? loginRedirect : <LoginPage />} />
+      <Route path="/admin" element={session ? loginRedirect : <LoginPage />} />
 
-      {/* ── Layout admin avec toutes les pages ── */}
-      <Route element={session ? <AdminLayout session={session} /> : <Navigate to="/" replace />}>
+      {/* ── Layout admin — accessible uniquement aux utilisateurs avec profil admin ── */}
+      <Route element={
+        !session         ? <Navigate to="/" replace /> :
+        isAdmin === undefined ? <LoadingFallback /> :
+        isAdmin          ? <AdminLayout session={session} /> :
+                           <Navigate to="/mobile" replace />
+      }>
         <Route path="/kpi"          element={<Kpi />} />
         <Route path="/statistiques" element={<Statistiques />} />
         <Route path="/parametres"   element={<Parametres />} />

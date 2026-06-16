@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '../supabaseClient';
 import { useDataStore } from '../store/useDataStore';
 import { colors } from '../constants';
@@ -110,93 +110,104 @@ function Statistiques() {
   // ─── Décompose le mois sélectionné ───
   const [anneeF, moisF] = moisFiltre.split('-').map(Number);
 
-  const estDansMoisFiltre = (dateStr) => {
+  const estDansMoisFiltre = useCallback((dateStr) => {
     if (!dateStr) return false;
     const d = new Date(dateStr);
     return d.getFullYear() === anneeF && (d.getMonth() + 1) === moisF;
-  };
+  }, [anneeF, moisF]);
 
   // ─── CALCULS RH (indépendants du filtre mois — état actuel) ───
-  const agentsActifs  = agentsData.filter(a => a.statut_agent !== 'INACTIF');
-  const agentsInactifs = agentsData.filter(a => a.statut_agent === 'INACTIF');
+  const agentsActifs = useMemo(
+    () => agentsData.filter(a => a.statut_agent !== 'INACTIF'),
+    [agentsData]
+  );
+  const agentsInactifs = useMemo(
+    () => agentsData.filter(a => a.statut_agent === 'INACTIF'),
+    [agentsData]
+  );
 
-  const parContrat = [
-    { label: 'CDD',       value: agentsActifs.filter(a => a.type_contrat === 'CDD').length,        color: colors.blue },
-    { label: 'CDI',       value: agentsActifs.filter(a => a.type_contrat === 'CDI').length,        color: colors.green },
-    { label: 'CTA (ANEM)',value: agentsActifs.filter(a => a.type_contrat === 'CTA (ANEM)').length, color: '#f59e0b' },
-  ];
+  const rhStats = useMemo(() => {
+    const aujourd = new Date();
+    const parContrat = [
+      { label: 'CDD',        value: agentsActifs.filter(a => a.type_contrat === 'CDD').length,        color: colors.blue },
+      { label: 'CDI',        value: agentsActifs.filter(a => a.type_contrat === 'CDI').length,        color: colors.green },
+      { label: 'CTA (ANEM)', value: agentsActifs.filter(a => a.type_contrat === 'CTA (ANEM)').length, color: '#f59e0b' },
+    ];
+    const parQualif = ['Agent Simple','Chef de Groupe','Maître-Chien','Convoyeur de Fonds'].map(q => ({
+      label: q,
+      value: agentsActifs.filter(a => a.qualification === q).length,
+      color: { 'Agent Simple':'#6b7280','Chef de Groupe':colors.blue,'Maître-Chien':colors.green,'Convoyeur de Fonds':colors.red }[q],
+    })).filter(q => q.value > 0);
+    const affiliesCNAS = agentsActifs.filter(a => a.numero_ss && a.numero_ss !== 'NON_DECLARE' && a.numero_ss.trim() !== '').length;
+    const cartesPro60  = agentsActifs.filter(a => { if (!a.validite_carte_pro) return false; const j = Math.ceil((new Date(a.validite_carte_pro) - aujourd) / 86400000); return j <= 60 && j > 0; });
+    const cartesExpir  = agentsActifs.filter(a => a.validite_carte_pro && new Date(a.validite_carte_pro) < aujourd);
+    const cddExpir15   = agentsActifs.filter(a => a.date_fin_contrat && new Date(a.date_fin_contrat) - aujourd < 15 * 86400000);
+    const siteCounts = {};
+    agentsActifs.forEach(a => { const s = a.site_affecte || 'Non affecté'; siteCounts[s] = (siteCounts[s] || 0) + 1; });
+    const parSite = Object.entries(siteCounts).sort((a,b) => b[1]-a[1]).slice(0,8)
+      .map(([label, value], i) => ({ label, value, color: [colors.blue,colors.green,colors.red,'#f59e0b','#8b5cf6','#06b6d4','#ec4899',colors.dark][i % 8] }));
+    return { parContrat, parQualif, affiliesCNAS, cartesPro60, cartesExpir, cddExpir15, parSite };
+  }, [agentsActifs]);
 
-  const parQualif = ['Agent Simple','Chef de Groupe','Maître-Chien','Convoyeur de Fonds'].map(q => ({
-    label: q,
-    value: agentsActifs.filter(a => a.qualification === q).length,
-    color: { 'Agent Simple':'#6b7280','Chef de Groupe':colors.blue,'Maître-Chien':colors.green,'Convoyeur de Fonds':colors.red }[q]
-  })).filter(q => q.value > 0);
-
-  const affiliesCNAS = agentsActifs.filter(a => a.numero_ss && a.numero_ss !== 'NON_DECLARE' && a.numero_ss.trim() !== '').length;
-
-  const aujourd = new Date();
-  const cartesPro60  = agentsActifs.filter(a => { if (!a.validite_carte_pro) return false; const j = Math.ceil((new Date(a.validite_carte_pro) - aujourd) / 86400000); return j <= 60 && j > 0; });
-  const cartesExpir  = agentsActifs.filter(a => a.validite_carte_pro && new Date(a.validite_carte_pro) < aujourd);
-  const cddExpir15   = agentsActifs.filter(a => a.date_fin_contrat && new Date(a.date_fin_contrat) - aujourd < 15 * 86400000);
-
-  const siteCounts = {};
-  agentsActifs.forEach(a => { const s = a.site_affecte || 'Non affecté'; siteCounts[s] = (siteCounts[s] || 0) + 1; });
-  const parSite = Object.entries(siteCounts).sort((a,b) => b[1]-a[1]).slice(0,8)
-    .map(([label, value], i) => ({ label, value, color: [colors.blue,colors.green,colors.red,'#f59e0b','#8b5cf6','#06b6d4','#ec4899',colors.dark][i % 8] }));
+  const { parContrat, parQualif, affiliesCNAS, cartesPro60, cartesExpir, cddExpir15, parSite } = rhStats;
 
   // ─── CALCULS FINANCE — filtrés sur le mois sélectionné ───
-  const facturesMois  = factures.filter(f => estDansMoisFiltre(f.date_facturation));
-  const caEncaisseM   = facturesMois.filter(f => f.statut_paiement === 'PAYEE').reduce((s,f) => s + Number(f.montant), 0);
-  const caAttenteM    = facturesMois.filter(f => f.statut_paiement !== 'PAYEE').reduce((s,f) => s + Number(f.montant), 0);
+  const financeStats = useMemo(() => {
+    const facturesMois = factures.filter(f => estDansMoisFiltre(f.date_facturation));
+    const caEncaisseM  = facturesMois.filter(f => f.statut_paiement === 'PAYEE').reduce((s,f) => s + Number(f.montant), 0);
+    const caAttenteM   = facturesMois.filter(f => f.statut_paiement !== 'PAYEE').reduce((s,f) => s + Number(f.montant), 0);
+    const caTotal      = factures.filter(f => f.statut_paiement === 'PAYEE').reduce((s,f) => s + Number(f.montant), 0);
+    const pipelines = [
+      { label:'📞 À Contacter',    value: prospections.filter(p => p.etape_pipeline==='A CONTACTER').length,    color:'#9ca3af' },
+      { label:'💬 En Négociation', value: prospections.filter(p => p.etape_pipeline==='EN NEGOCIATION').length, color:'#f59e0b' },
+      { label:'📄 Devis Envoyé',   value: prospections.filter(p => p.etape_pipeline==='DEVIS ENVOYE').length,   color:colors.blue },
+      { label:'✅ Marchés Gagnés', value: prospections.filter(p => p.etape_pipeline==='GAGNE').length,          color:colors.green },
+      { label:'❌ Perdus',         value: prospections.filter(p => p.etape_pipeline==='PERDU').length,          color:colors.red },
+    ].filter(p => p.value > 0);
+    const caParMoisMap = {};
+    factures.filter(f => f.statut_paiement === 'PAYEE' && f.date_encaissement).forEach(f => {
+      const d = new Date(f.date_encaissement);
+      const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+      caParMoisMap[key] = (caParMoisMap[key] || 0) + Number(f.montant);
+    });
+    const moisCa = Object.entries(caParMoisMap).sort().slice(-6).map(([m, v]) => ({
+      key: m, label: new Date(m+'-01').toLocaleString('fr-FR',{month:'short',year:'2-digit'}), value: v, color: colors.green,
+    }));
+    return { caEncaisseM, caAttenteM, caTotal, pipelines, moisCa };
+  }, [factures, prospections, estDansMoisFiltre]);
 
-  // CA global tous mois (pour les totaux dans les donuts)
-  const caTotal  = factures.filter(f => f.statut_paiement === 'PAYEE').reduce((s,f) => s + Number(f.montant), 0);
-
-  const pipelines = [
-    { label:'📞 À Contacter',   value: prospections.filter(p => p.etape_pipeline==='A CONTACTER').length,   color:'#9ca3af' },
-    { label:'💬 En Négociation', value: prospections.filter(p => p.etape_pipeline==='EN NEGOCIATION').length, color:'#f59e0b' },
-    { label:'📄 Devis Envoyé',   value: prospections.filter(p => p.etape_pipeline==='DEVIS ENVOYE').length,  color:colors.blue },
-    { label:'✅ Marchés Gagnés', value: prospections.filter(p => p.etape_pipeline==='GAGNE').length,         color:colors.green },
-    { label:'❌ Perdus',         value: prospections.filter(p => p.etape_pipeline==='PERDU').length,         color:colors.red },
-  ].filter(p => p.value > 0);
-
-  // Série CA sur 6 mois glissants (axe temporel fixe, indépendant du filtre)
-  const caParMois = {};
-  factures.filter(f => f.statut_paiement === 'PAYEE' && f.date_encaissement).forEach(f => {
-    const d = new Date(f.date_encaissement);
-    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-    caParMois[key] = (caParMois[key] || 0) + Number(f.montant);
-  });
-  const moisCa = Object.entries(caParMois).sort().slice(-6).map(([m, v]) => ({
-    key: m,
-    label: new Date(m+'-01').toLocaleString('fr-FR',{month:'short',year:'2-digit'}),
-    value: v, color: colors.green,
-  }));
+  const { caEncaisseM, caAttenteM, caTotal, pipelines, moisCa } = financeStats;
 
   // ─── CALCULS INCIDENTS — filtrés sur le mois sélectionné ───
-  const incidentsMoisFiltre  = allIncidents.filter(i => estDansMoisFiltre(i.created_at));
-  const incidentsCeMois      = incidentsMoisFiltre.length;
-  const incidentsResolusM    = incidentsMoisFiltre.filter(i => i.resolu).length;
+  const incidentsStats = useMemo(() => {
+    const incidentsMoisFiltre = allIncidents.filter(i => estDansMoisFiltre(i.created_at));
+    const incidentsCeMois     = incidentsMoisFiltre.length;
+    const incidentsResolusM   = incidentsMoisFiltre.filter(i => i.resolu).length;
+    const incParMoisMap = {};
+    allIncidents.forEach(i => {
+      if (!i.created_at) return;
+      const d = new Date(i.created_at);
+      const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+      incParMoisMap[key] = (incParMoisMap[key] || 0) + 1;
+    });
+    const moisInc = Object.entries(incParMoisMap).sort().slice(-6).map(([m,v]) => ({
+      key: m, label: new Date(m+'-01').toLocaleString('fr-FR',{month:'short',year:'2-digit'}), value: v, color: colors.red,
+    }));
+    return { incidentsMoisFiltre, incidentsCeMois, incidentsResolusM, moisInc };
+  }, [allIncidents, estDansMoisFiltre]);
 
-  // Série incidents sur 6 mois glissants (indépendant du filtre)
-  const incParMois = {};
-  allIncidents.forEach(i => {
-    if (!i.created_at) return;
-    const d = new Date(i.created_at);
-    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-    incParMois[key] = (incParMois[key] || 0) + 1;
-  });
-  const moisInc = Object.entries(incParMois).sort().slice(-6).map(([m,v]) => ({
-    key: m,
-    label: new Date(m+'-01').toLocaleString('fr-FR',{month:'short',year:'2-digit'}),
-    value: v, color: colors.red,
-  }));
+  const { incidentsMoisFiltre, incidentsCeMois, incidentsResolusM, moisInc } = incidentsStats;
 
   // ─── CALCULS OPÉRATIONS ───
-  const vehOpe        = vehicules.filter(v => v.statut === 'OPERATIONNEL').length;
-  const vehPanne      = vehicules.filter(v => v.statut !== 'OPERATIONNEL').length;
-  const armesAffectees  = armesData.filter(a => a.statut === 'AFFECTEE').length;
-  const armesDisponibles= armesData.filter(a => a.statut !== 'AFFECTEE').length;
+  const { vehOpe, vehPanne } = useMemo(() => ({
+    vehOpe:   vehicules.filter(v => v.statut === 'OPERATIONNEL').length,
+    vehPanne: vehicules.filter(v => v.statut !== 'OPERATIONNEL').length,
+  }), [vehicules]);
+
+  const { armesAffectees, armesDisponibles } = useMemo(() => ({
+    armesAffectees:   armesData.filter(a => a.statut === 'AFFECTEE').length,
+    armesDisponibles: armesData.filter(a => a.statut !== 'AFFECTEE').length,
+  }), [armesData]);
 
   const formater = (n) => new Intl.NumberFormat('fr-DZ',{minimumFractionDigits:0}).format(n);
 
