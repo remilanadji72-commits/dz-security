@@ -7,8 +7,7 @@
   }
 
   /* 1. On masque la barre latérale noire et les menus de gauche */
-  div[style*="width: 280px"],
-  div[style*="width: 80px"] {
+  div[style*="width: 260px"] {
     display: none !important;
   }
 

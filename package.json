@@ -10,7 +10,10 @@
     "preview": "vite preview",
     "test": "vitest",
     "test:run": "vitest run",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "create-admin": "node scripts/create-admin.mjs",
+    "create-user": "node scripts/create-user.mjs",
+    "insert-profile": "node scripts/insert-profile.mjs"
   },
   "dependencies": {
     "@fullcalendar/core": "^6.1.20",
@@ -36,9 +39,11 @@
     "@eslint/js": "^10.0.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
+    "@vitest/ui": "^4.1.8",
     "eslint": "^10.3.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",

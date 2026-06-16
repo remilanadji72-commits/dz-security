@@ -24,7 +24,7 @@ function Armurerie() {
       setAgentSelectionne('');
       fetchToutesLesDonnees();
       alert("✅ Arme sortie du coffre avec succès !");
-    } catch (error) {
+    } catch (_err) {
       alert("❌ Erreur réseau lors de la sortie de l'arme.");
     } finally {
       setLoading(false);
@@ -37,7 +37,7 @@ function Armurerie() {
         const { error } = await supabase.from('armes').update({ statut: 'AU_COFFRE', agent_id: null }).eq('id', idArme);
         if (error) throw error;
         fetchToutesLesDonnees();
-      } catch (error) {
+      } catch (_err) {
         alert("❌ Erreur lors de la restitution.");
       }
     }

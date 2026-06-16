@@ -43,10 +43,6 @@ function MobileApp() {
     return () => clearInterval(timer);
   }, []);
 
-  useEffect(() => {
-    if (connecte) verifierGPS();
-  }, [connecte, siteAgent]);
-
   const verifierGPS = () => {
     if (!navigator.geolocation) { setErreurGPS('no_gps'); return; }
     setErreurGPS('wait');
@@ -61,6 +57,11 @@ function MobileApp() {
       { enableHighAccuracy: true }
     );
   };
+
+  useEffect(() => {
+    if (connecte) verifierGPS();
+  // verifierGPS est défini avant cet effet et référence siteAgent déjà dans les deps
+  }, [connecte, siteAgent]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const seConnecter = (e) => {
     e.preventDefault();

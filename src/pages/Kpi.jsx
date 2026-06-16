@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Circle } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -53,12 +54,12 @@ function Kpi() {
               </Marker>
             ))}
             {incidentsData.map(inc => inc.lat && inc.lng && (
-              <div key={`inc-${inc.id}`}>
+              <Fragment key={`inc-${inc.id}`}>
                 <Circle center={[inc.lat, inc.lng]} pathOptions={{ color: 'red', fillColor: 'red' }} radius={500} />
                 <Marker position={[inc.lat, inc.lng]} icon={redIcon}>
                   <Popup><strong style={{ color: 'red' }}>🚨 SOS : {inc.nom_agent}</strong></Popup>
                 </Marker>
-              </div>
+              </Fragment>
             ))}
           </MapContainer>
         </div>

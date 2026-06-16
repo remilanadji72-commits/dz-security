@@ -5,14 +5,12 @@ import { colors } from '../constants';
 function Recouvrement() {
   const [facturesImpayees, setFacturesImpayees] = useState([]);
   const [facturesEncaissees, setFacturesEncaissees] = useState([]);
-  const [chargement, setChargement] = useState(true);
 
   const fetchFactures = async () => {
     const { data: impayees } = await supabase.from('factures').select('*').neq('statut_paiement', 'PAYEE').order('date_facturation', { ascending: true });
     const { data: encaissees } = await supabase.from('factures').select('*').eq('statut_paiement', 'PAYEE').order('date_encaissement', { ascending: false });
     if (impayees) setFacturesImpayees(impayees);
     if (encaissees) setFacturesEncaissees(encaissees);
-    setChargement(false);
   };
 
   useEffect(() => { fetchFactures(); }, []);

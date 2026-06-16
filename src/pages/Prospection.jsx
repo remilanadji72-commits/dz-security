@@ -104,7 +104,7 @@ function Prospection() {
       </div>
 
       <div className="card">
-        <div style={{ padding: '0 0 15px 0', borderBottom: '1px solid #e5e7eb', backgroundColor: '#f9fafb', margin: '-20px -20px 20px -20px', padding: '20px' }}>
+        <div style={{ borderBottom: '1px solid #e5e7eb', backgroundColor: '#f9fafb', margin: '-20px -20px 20px -20px', padding: '20px' }}>
           <h3 className="section-title">Pipeline Commercial (Entonnoir de Vente)</h3>
           <p className="text-xs text-muted" style={{ marginTop: '5px' }}>Gérez l'avancement de vos contacts jusqu'à la signature du marché.</p>
         </div>

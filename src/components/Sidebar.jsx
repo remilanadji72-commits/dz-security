@@ -7,7 +7,7 @@ import LanguageSwitcher from './ui/LanguageSwitcher';
 
 function Sidebar({ activeTab, setActiveTab, handleLogout, roleAdmin }) {
   const { t: i18nT } = useTranslation();
-  const { lang, isRTL } = useLanguage();
+  const { isRTL } = useLanguage();
 
   const sections = getMenuForRole(roleAdmin || 'GERANT');
   const roleLabel = i18nT(`roles.${roleAdmin}`, { defaultValue: roleAdmin });

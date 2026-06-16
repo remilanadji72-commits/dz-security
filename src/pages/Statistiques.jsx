@@ -151,7 +151,6 @@ function Statistiques() {
 
   // CA global tous mois (pour les totaux dans les donuts)
   const caTotal  = factures.filter(f => f.statut_paiement === 'PAYEE').reduce((s,f) => s + Number(f.montant), 0);
-  const caAttente= factures.filter(f => f.statut_paiement !== 'PAYEE').reduce((s,f) => s + Number(f.montant), 0);
 
   const pipelines = [
     { label:'📞 À Contacter',   value: prospections.filter(p => p.etape_pipeline==='A CONTACTER').length,   color:'#9ca3af' },

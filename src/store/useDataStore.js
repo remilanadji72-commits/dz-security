@@ -9,6 +9,7 @@ export const useDataStore = create((set, get) => ({
   armesData: [],
   historiquePointages: [],
   roleAdmin: 'GERANT',
+  _cachedUserId: null,
 
   // --- Fetchers individuels (appelés par Realtime) ---
   fetchAgents: async () => {
@@ -36,17 +37,19 @@ export const useDataStore = create((set, get) => ({
     if (data) set({ historiquePointages: data });
   },
 
-  // --- Fetch initial complet (chargement au login) ---
+  // --- Fetch initial complet (chargement au login ou après CRUD) ---
   fetchToutesLesDonnees: async (userId) => {
-    if (!userId) return;
+    const id = userId || get()._cachedUserId;
+    if (!id) return;
+    if (userId) set({ _cachedUserId: userId });
     try {
       const { data: profil } = await supabase
         .from('profils_admin')
         .select('role')
-        .eq('id', userId)
+        .eq('id', id)
         .single();
       if (profil?.role) set({ roleAdmin: profil.role });
-    } catch (e) {}
+    } catch { /* profil admin introuvable — utilisateur terrain */ }
     const { fetchAgents, fetchIncidents, fetchContrats, fetchArmes, fetchPointages } = get();
     await Promise.all([fetchAgents(), fetchIncidents(), fetchContrats(), fetchArmes(), fetchPointages()]);
   },

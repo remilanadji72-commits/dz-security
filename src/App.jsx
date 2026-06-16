@@ -134,6 +134,8 @@ function AdminLayout({ session }) {
     if (!session) return;
     fetchToutesLesDonnees(session.user.id);
     return initRealtime();
+    // fetchToutesLesDonnees et initRealtime sont des actions Zustand stables
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
 
   // /admin → affiche kpi dans la sidebar comme onglet actif

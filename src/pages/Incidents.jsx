@@ -1,11 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../supabaseClient';
 import { useDataStore } from '../store/useDataStore';
-import { colors } from '../constants';
 
 function Incidents() {
   const { incidentsData, contratsData, resoudreIncident } = useDataStore();
   const [filtreSite, setFiltreSite] = useState('');
   const [filtreStatut, setFiltreStatut] = useState('tous');
+  const [incidentsResolus, setIncidentsResolus] = useState([]);
+  const [loadingResolus, setLoadingResolus] = useState(false);
+
+  useEffect(() => {
+    if (filtreStatut !== 'resolus') return;
+    setLoadingResolus(true);
+    supabase.from('incidents').select('*').eq('resolu', true).order('id', { ascending: false })
+      .then(({ data }) => { if (data) setIncidentsResolus(data); setLoadingResolus(false); });
+  }, [filtreStatut]);
 
   return (
     <div className="page-container">
@@ -38,21 +47,19 @@ function Incidents() {
 
       {/* LISTE DES INCIDENTS */}
       <div className="card">
-        {incidentsData.length === 0 ? (
-          <div className="empty-state">
-            <span className="empty-state-icon">🛡️</span>
-            Aucun incident actif. Le réseau est sécurisé.
-          </div>
-        ) : (
+        {loadingResolus ? (
+          <div className="empty-state"><span className="empty-state-icon">⏳</span>Chargement des incidents clôturés...</div>
+        ) : (() => {
+          const source = filtreStatut === 'resolus' ? incidentsResolus : incidentsData;
+          const liste = source.filter(incident => filtreSite === '' || (incident.site || '').includes(filtreSite));
+          return liste.length === 0 ? (
+            <div className="empty-state">
+              <span className="empty-state-icon">🛡️</span>
+              {filtreStatut === 'resolus' ? 'Aucun incident clôturé.' : 'Aucun incident actif. Le réseau est sécurisé.'}
+            </div>
+          ) : (
           <div className="flex-col">
-            {incidentsData
-              .filter(incident => {
-                if (filtreStatut === 'tous') return true;
-                if (filtreStatut === 'actifs') return incident.resolu === false;
-                if (filtreStatut === 'resolus') return incident.resolu === true;
-                return true;
-              })
-              .filter(incident => filtreSite === '' || incident.site.includes(filtreSite))
+            {liste
               .map((incident) => (
                 <div key={incident.id} style={{
                   border: `1px solid ${incident.resolu ? '#e5e7eb' : '#fca5a5'}`,
@@ -97,7 +104,8 @@ function Incidents() {
                 </div>
               ))}
           </div>
-        )}
+          );
+        })()}
       </div>
     </div>
   );

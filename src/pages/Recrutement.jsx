@@ -11,6 +11,8 @@ function Recrutement() {
   const [sousMenu, setSousMenu] = useState('contrats');
   const [afficherFormulaire, setAfficherFormulaire] = useState(false);
   const deleteModal = useModal();
+  // TODO Phase 4 : brancher la suppression d'agent
+  // eslint-disable-next-line no-unused-vars
   const [agentToDelete, setAgentToDelete] = useState(null);
 
   const [matricule, setMatricule] = useState('');

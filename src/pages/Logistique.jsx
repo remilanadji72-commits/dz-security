@@ -40,7 +40,7 @@ function Logistique() {
     try {
       const { data, error } = await supabase.from('dotations_uniformes').select('*, agents(nom, matricule, site_affecte)').order('id', { ascending: false });
       if (!error) setDotations(data || []);
-    } catch (e) {}
+    } catch { /* silently ignore fetch failure */ }
   };
 
   useEffect(() => { fetchVehicules(); fetchCommandes(); fetchDotations(); }, []);
@@ -80,7 +80,7 @@ function Logistique() {
       if (error) throw error;
       setAgentDotation(''); setArticleDotation(''); setAfficherFormUniforme(false);
       fetchDotations(); alert("Dotation enregistrée.");
-    } catch (err) { alert("Erreur BDD."); }
+    } catch { alert("Erreur BDD."); }
   };
 
   const changerStatutUniforme = async (id, s) => { await supabase.from('dotations_uniformes').update({ statut: s }).eq('id', id); fetchDotations(); };
