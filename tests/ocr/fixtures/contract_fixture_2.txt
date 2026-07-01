@@ -1,0 +1,10 @@
+CLIENT: Global Supplies Ltd.
+ADDRESS: 7 Industrial Park, Annaba
+SITE: Depot Central
+REF: GS/2026/007
+SIGNATURE: 2026-03-10
+DEBUT: 10-03-2026
+FIN: 09-03-2027
+MONTANT: 750.000,50 DA
+CLAUSES SPÉCIFIQUES: Installation incluse; Formation du personnel
+SAISI PAR (TRAÇABILITÉ): Fatima

@@ -5,9 +5,11 @@ import { supabase } from './supabaseClient';
 import { useDataStore } from './store/useDataStore';
 import { useLanguage } from './context/LanguageContext';
 
-import Sidebar   from './components/Sidebar';
-import Topbar    from './components/layout/Topbar';
-import RoleGuard from './components/layout/RoleGuard';
+import Sidebar        from './components/Sidebar';
+import Topbar          from './components/layout/Topbar';
+import RoleGuard       from './components/layout/RoleGuard';
+import ErrorBoundary   from './components/layout/ErrorBoundary';
+import ToastContainer  from './components/ui/ToastContainer';
 
 import './App.css';
 
@@ -30,8 +32,15 @@ const Recrutement   = lazy(() => import('./pages/Recrutement'));
 const Social        = lazy(() => import('./pages/Social'));
 const Pointage      = lazy(() => import('./pages/Pointage'));
 const Attachements  = lazy(() => import('./pages/Attachements'));
+const Garanties     = lazy(() => import('./pages/Garanties'));
+const Tenues        = lazy(() => import('./pages/Tenues'));
 const Juridique     = lazy(() => import('./pages/Juridique'));
-const NotFound      = lazy(() => import('./pages/NotFound'));
+const Fiscal        = lazy(() => import('./pages/Fiscal'));
+const Onboarding    = lazy(() => import('./pages/Onboarding'));
+const SuperAdmin      = lazy(() => import('./pages/SuperAdmin'));
+const AlertesLegales  = lazy(() => import('./pages/AlertesLegales'));
+const Paie            = lazy(() => import('./pages/Paie'));
+const NotFound        = lazy(() => import('./pages/NotFound'));
 
 function LoadingFallback() {
   return (
@@ -106,6 +115,12 @@ function LoginPage() {
             {loading ? t('auth.logging_in') : t('auth.login')}
           </button>
         </form>
+        <div style={{ borderTop: '1px solid #f3f4f6', marginTop: '20px', paddingTop: '16px', textAlign: 'center' }}>
+          <p style={{ margin: '0 0 8px 0', fontSize: '13px', color: '#9ca3af' }}>{t('auth.register_cta')}</p>
+          <a href="/register" style={{ display: 'inline-block', padding: '10px 24px', borderRadius: '10px', background: 'linear-gradient(135deg, #1e3a8a, #3b82f6)', color: 'white', fontWeight: '800', fontSize: '13px', textDecoration: 'none' }}>
+            {t('auth.trial_label')}
+          </a>
+        </div>
       </div>
     </div>
   );
@@ -141,12 +156,16 @@ function AdminLayout({ session }) {
         <Topbar />
         <div style={{ flex: 1, overflowY: 'auto' }}>
           <RoleGuard>
-            <Suspense fallback={<LoadingFallback />}>
-              <Outlet />
-            </Suspense>
+            <ErrorBoundary>
+              <Suspense fallback={<LoadingFallback />}>
+                <Outlet />
+              </Suspense>
+            </ErrorBoundary>
           </RoleGuard>
         </div>
       </div>
+      {/* Notifications globales — portal sur document.body, visible sur toutes les pages admin */}
+      <ToastContainer />
     </div>
   );
 }
@@ -156,6 +175,8 @@ function App() {
   const [session,  setSession]  = useState(undefined); // undefined = init
   const [isAdmin,  setIsAdmin]  = useState(undefined); // undefined = rôle en cours de résolution
   const [checked,  setChecked]  = useState(false);
+  // Sélecteur atomique — ne déclenche un re-render que si roleAdmin change
+  const roleAdmin = useDataStore(s => s.roleAdmin);
   // Mémorise le dernier userId pour lequel on a résolu le rôle
   // → évite de re-résoudre (et de flasher) lors des TOKEN_REFRESHED
   const resolvedForUserId = useRef(null);
@@ -206,6 +227,13 @@ function App() {
   return (
     <Routes>
       {/* ── Connexion — / + /login + /admin (si pas connecté) ── */}
+      {/* ── Onboarding public — accessible sans compte ── */}
+      <Route path="/register" element={
+        <Suspense fallback={<LoadingFallback />}>
+          <Onboarding />
+        </Suspense>
+      } />
+
       <Route path="/"      element={session ? loginRedirect : <LoginPage />} />
       <Route path="/login" element={session ? loginRedirect : <LoginPage />} />
       <Route path="/admin" element={session ? loginRedirect : <LoginPage />} />
@@ -233,7 +261,10 @@ function App() {
         <Route path="/facturation"  element={<Facturation />} />
         <Route path="/recouvrement" element={<Recouvrement />} />
         <Route path="/prospection"  element={<Prospection />} />
+        <Route path="/garanties"    element={<Garanties />} />
+        <Route path="/tenues"       element={<Tenues />} />
 
+        <Route path="/paie"         element={<Paie />} />
         <Route path="/recrutement"  element={<Recrutement />} />
         <Route path="/social"       element={<Social />} />
         <Route path="/pointage"     element={<Pointage />} />
@@ -241,6 +272,13 @@ function App() {
         <Route path="/archives"     element={<ArchivesRedirect />} />
 
         <Route path="/juridique"    element={<Juridique />} />
+        <Route path="/fiscal"       element={<Fiscal />} />
+        <Route path="/alertes"      element={<AlertesLegales />} />
+        <Route path="/superadmin"   element={
+          roleAdmin !== 'SUPER_ADMIN'
+            ? <Navigate to="/kpi" replace />
+            : <SuperAdmin />
+        } />
       </Route>
 
       {/* ── 404 ── */}

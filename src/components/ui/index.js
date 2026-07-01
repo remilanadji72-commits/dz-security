@@ -5,3 +5,4 @@ export { default as Table           } from './Table';
 export { default as Modal           } from './Modal';
 export { default as useModal        } from './useModal';
 export { default as LanguageSwitcher } from './LanguageSwitcher';
+export { default as ToastContainer  } from './ToastContainer';

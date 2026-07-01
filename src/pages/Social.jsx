@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
 import { useDataStore } from '../store/useDataStore';
 import { colors } from '../constants';
@@ -18,18 +18,33 @@ function Social() {
   const [atsAgentId, setAtsAgentId] = useState('');
   const [atsMotif, setAtsMotif] = useState('');
 
-  const fetchDonneesSociales = async () => {
-    const { data: accData } = await supabase.from('accidents_travail').select('*, agents(nom, matricule, numero_ss)');
-    if (accData) setAccidents(accData);
-    const { data: atsData } = await supabase.from('demandes_ats').select('*, agents(nom, matricule)');
-    if (atsData) setDemandesAts(atsData);
-    setChargement(false);
-  };
+  // Agents CNAS — calculé une seule fois (pas à chaque render)
+  const agentsAffilies = useMemo(() =>
+    agentsData.filter(a => a.numero_ss && a.numero_ss !== 'NON_DECLARE' && a.numero_ss.trim() !== ''),
+    [agentsData]);
 
-  useEffect(() => { fetchDonneesSociales(); }, []);
+  const agentsActifsList = useMemo(() =>
+    agentsData.filter(a => a.statut_agent !== 'INACTIF'),
+    [agentsData]);
+
+  const fetchDonneesSociales = useCallback(async () => {
+    try {
+      const [accRes, atsRes] = await Promise.all([
+        supabase.from('accidents_travail').select('*, agents(nom, matricule, numero_ss)'),
+        supabase.from('demandes_ats').select('*, agents(nom, matricule)'),
+      ]);
+      if (accRes.data) setAccidents(accRes.data);
+      if (atsRes.data) setDemandesAts(atsRes.data);
+    } catch (err) {
+      console.error('[Social] fetchDonneesSociales:', err.message);
+    } finally {
+      setChargement(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchDonneesSociales(); }, [fetchDonneesSociales]);
 
   const exporterFichierCNAS = () => {
-    const agentsAffilies = agentsData.filter(a => a.numero_ss && a.numero_ss !== 'NON_DECLARE' && a.numero_ss.trim() !== '');
     if (agentsAffilies.length === 0) { alert("Aucun agent n'a de N° SS valide."); return; }
     let csvContent = "data:text/csv;charset=utf-8,﻿Matricule;Nom;Prenom;Numero_SS;Date_Embauche\n";
     agentsAffilies.forEach(a => {
@@ -47,10 +62,17 @@ function Social() {
     e.preventDefault();
     if (!accAgentId || !accDate) return;
     setChargement(true);
-    await supabase.from('accidents_travail').insert([{ agent_id: accAgentId, date_accident: accDate, lieu_accident: accLieu, arret_maladie_jours: accArretJours, declaration_cnas_faite: false }]);
-    setAfficherFormulaireAccident(false);
-    setAccAgentId(''); setAccDate(''); setAccLieu(''); setAccArretJours(0);
-    fetchDonneesSociales();
+    try {
+      const { error } = await supabase.from('accidents_travail').insert([{ agent_id: accAgentId, date_accident: accDate, lieu_accident: accLieu, arret_maladie_jours: accArretJours, declaration_cnas_faite: false }]);
+      if (error) throw error;
+      setAfficherFormulaireAccident(false);
+      setAccAgentId(''); setAccDate(''); setAccLieu(''); setAccArretJours(0);
+      await fetchDonneesSociales();
+    } catch (err) {
+      console.error('[Social] declarerAccident:', err.message);
+    } finally {
+      setChargement(false);
+    }
   };
 
   const declarerAccidentCNAS = async (id) => {
@@ -62,10 +84,17 @@ function Social() {
     e.preventDefault();
     if (!atsAgentId) return;
     setChargement(true);
-    await supabase.from('demandes_ats').insert([{ agent_id: atsAgentId, motif: atsMotif || 'Non précisé', date_demande: new Date().toISOString().split('T')[0], statut: 'EN ATTENTE' }]);
-    setAfficherFormulaireAts(false);
-    setAtsAgentId(''); setAtsMotif('');
-    fetchDonneesSociales();
+    try {
+      const { error } = await supabase.from('demandes_ats').insert([{ agent_id: atsAgentId, motif: atsMotif || 'Non précisé', date_demande: new Date().toISOString().split('T')[0], statut: 'EN ATTENTE' }]);
+      if (error) throw error;
+      setAfficherFormulaireAts(false);
+      setAtsAgentId(''); setAtsMotif('');
+      await fetchDonneesSociales();
+    } catch (err) {
+      console.error('[Social] demanderATS:', err.message);
+    } finally {
+      setChargement(false);
+    }
   };
 
   const genererATS = async (id, nomAgent) => {

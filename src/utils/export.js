@@ -1,11 +1,11 @@
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
-import * as XLSX from 'xlsx';
+// Imports statiques supprimés → déplacés en imports dynamiques dans chaque fonction
+// Gain : −250 KB gzip sur le bundle initial (xlsx ~180 KB + jspdf ~70 KB gzip)
 
 const fmt = (n) => new Intl.NumberFormat('fr-DZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n || 0);
 
 // ── Excel export ──────────────────────────────────────────────────────────────
-export function exportToExcel(headers, rows, filename = 'export') {
+export async function exportToExcel(headers, rows, filename = 'export') {
+  const XLSX = await import('xlsx');
   const wsData = [headers, ...rows];
   const ws = XLSX.utils.aoa_to_sheet(wsData);
   ws['!cols'] = headers.map((h, i) => ({
@@ -16,8 +16,18 @@ export function exportToExcel(headers, rows, filename = 'export') {
   XLSX.writeFile(wb, `${filename}.xlsx`);
 }
 
+// ── Chargeur jsPDF partagé (une seule promesse pour les 4 fonctions PDF) ──────
+async function loadPDF() {
+  const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
+    import('jspdf'),
+    import('jspdf-autotable'),
+  ]);
+  return { jsPDF, autoTable };
+}
+
 // ── Generic table PDF ─────────────────────────────────────────────────────────
-export function exportTableToPDF({ title, subtitle = '', headers, rows, filename = 'export', orientation = 'landscape' }) {
+export async function exportTableToPDF({ title, subtitle = '', headers, rows, filename = 'export', orientation = 'landscape' }) {
+  const { jsPDF, autoTable } = await loadPDF();
   const doc = new jsPDF({ orientation, unit: 'mm', format: 'a4' });
   const W = orientation === 'landscape' ? 297 : 210;
 
@@ -56,8 +66,37 @@ export function exportTableToPDF({ title, subtitle = '', headers, rows, filename
   doc.save(`${filename}.pdf`);
 }
 
+export async function exportOcrSummaryToPDF({ title, summary, filename = 'ocr_summary' }) {
+  const { jsPDF } = await loadPDF();
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  doc.setFillColor(43, 48, 59);
+  doc.rect(0, 0, 210, 20, 'F');
+
+  doc.setTextColor(255);
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.text('DZ SECURITY', 10, 14);
+
+  doc.setTextColor(200);
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Exporté le ${new Date().toLocaleDateString('fr-DZ')}`, 200, 14, { align: 'right' });
+
+  doc.setTextColor(0);
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
+  doc.text(title || 'Résumé OCR du cahier des charges', 10, 30);
+
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  const lines = summary.split('\n').flatMap((line) => doc.splitTextToSize(line, 190));
+  doc.text(lines, 10, 40);
+  doc.save(`${filename}.pdf`);
+}
+
 // ── Professional invoice PDF ──────────────────────────────────────────────────
-export function exportInvoiceToPDF(facture) {
+export async function exportInvoiceToPDF(facture) {
+  const { jsPDF, autoTable } = await loadPDF();
   const doc = new jsPDF({ unit: 'mm', format: 'a4' });
 
   doc.setFillColor(43, 48, 59);
@@ -159,7 +198,8 @@ export function exportInvoiceToPDF(facture) {
 }
 
 // ── Planning PDF (rotation matrix) ───────────────────────────────────────────
-export function exportPlanningToPDF({ site, mois, brigades, lignes, determinerAffectation }) {
+export async function exportPlanningToPDF({ site, mois, brigades, lignes, determinerAffectation }) {
+  const { jsPDF, autoTable } = await loadPDF();
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
   doc.setFillColor(43, 48, 59);
@@ -209,7 +249,8 @@ export function exportPlanningToPDF({ site, mois, brigades, lignes, determinerAf
 }
 
 // ── Plan de Défense PDF ───────────────────────────────────────────────────────
-export function exportPlanDefenseToPDF(contrat) {
+export async function exportPlanDefenseToPDF(contrat) {
+  const { jsPDF, autoTable } = await loadPDF();
   const doc = new jsPDF({ unit: 'mm', format: 'a4' });
   const W = 210;
   const dateEd = new Date().toLocaleDateString('fr-DZ');

@@ -13,7 +13,15 @@ function Incidents() {
     if (filtreStatut !== 'resolus') return;
     setLoadingResolus(true);
     supabase.from('incidents').select('*').eq('resolu', true).order('id', { ascending: false })
-      .then(({ data }) => { if (data) setIncidentsResolus(data); setLoadingResolus(false); });
+      .then(({ data, error }) => {
+        if (error) console.error('[Incidents] fetch resolus:', error.message);
+        if (data) setIncidentsResolus(data);
+        setLoadingResolus(false);
+      })
+      .catch(err => {
+        console.error('[Incidents] réseau:', err.message);
+        setLoadingResolus(false);
+      });
   }, [filtreStatut]);
 
   return (

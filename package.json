@@ -10,10 +10,12 @@
     "preview": "vite preview",
     "test": "vitest",
     "test:run": "vitest run",
+    "generate:fixtures:images": "node scripts/generate-fixtures-from-images.mjs",
     "test:ui": "vitest --ui",
     "create-admin": "node scripts/create-admin.mjs",
     "create-user": "node scripts/create-user.mjs",
-    "insert-profile": "node scripts/insert-profile.mjs"
+    "insert-profile": "node scripts/insert-profile.mjs",
+    "analyse-marche": "node scripts/analyse-marche.mjs"
   },
   "dependencies": {
     "@fullcalendar/core": "^6.1.20",
@@ -27,6 +29,7 @@
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.8",
     "leaflet": "^1.9.4",
+    "mammoth": "^1.12.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "react-i18next": "^17.0.8",
@@ -49,7 +52,7 @@
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.6.0",
     "jsdom": "^29.1.1",
-    "vite": "^8.0.12",
-    "vitest": "^4.1.8"
+    "tesseract.js": "^4.1.4",
+    "vite": "^8.0.12"
   }
 }

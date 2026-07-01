@@ -5,16 +5,32 @@ import { colors } from '../constants';
 function Pointage() {
   const { historiquePointages } = useDataStore();
   const [rechercheNom, setRechercheNom] = React.useState('');
+  const [filtreSite, setFiltreSite] = React.useState('');
   const [filtreDate, setFiltreDate] = React.useState('');
 
+  const sitesDisponibles = useMemo(() => {
+    return Array.from(new Set(historiquePointages
+      .map((p) => p.site_affecte || 'Non assigné')
+      .filter(Boolean)))
+      .sort((a, b) => a.localeCompare(b));
+  }, [historiquePointages]);
+
   const pointagesFiltres = useMemo(() => {
-    return historiquePointages.filter(p => {
-      const matchNom = !rechercheNom ||
-        (p.nom_agent || '').toLowerCase().includes(rechercheNom.toLowerCase());
-      const matchDate = !filtreDate || p.date_pointage === filtreDate;
-      return matchNom && matchDate;
-    });
-  }, [historiquePointages, rechercheNom, filtreDate]);
+    return historiquePointages
+      .filter(p => {
+        const matchNom = !rechercheNom ||
+          (p.nom_agent || '').toLowerCase().includes(rechercheNom.toLowerCase());
+        const matchSite = !filtreSite || (p.site_affecte || 'Non assigné') === filtreSite;
+        const matchDate = !filtreDate || p.date_pointage === filtreDate;
+        return matchNom && matchSite && matchDate;
+      })
+      .sort((a, b) => {
+        const siteA = (a.site_affecte || 'Non assigné').toLowerCase();
+        const siteB = (b.site_affecte || 'Non assigné').toLowerCase();
+        if (siteA !== siteB) return siteA.localeCompare(siteB);
+        return (a.nom_agent || '').localeCompare(b.nom_agent || '');
+      });
+  }, [historiquePointages, rechercheNom, filtreSite, filtreDate]);
 
   const exporterPointages = useCallback(() => {
     let csvContent = 'data:text/csv;charset=utf-8,﻿';
@@ -47,6 +63,19 @@ function Pointage() {
             onChange={(e) => setRechercheNom(e.target.value)}
             className="form-input"
           />
+        </div>
+        <div className="flex-1">
+          <label className="form-label">Filtrer par Site</label>
+          <select
+            value={filtreSite}
+            onChange={(e) => setFiltreSite(e.target.value)}
+            className="form-select"
+          >
+            <option value="">Tous les sites</option>
+            {sitesDisponibles.map((site) => (
+              <option key={site} value={site}>{site}</option>
+            ))}
+          </select>
         </div>
         <div className="flex-1">
           <label className="form-label">Filtrer par Date</label>

@@ -14,7 +14,9 @@
     "facturation":  "Service Facturation",
     "recouvrement": "Service Recouvrement",
     "prospection":  "Service Prospection",
+    "paie":         "Module Paie — الأجور",
     "recrutement":  "Service Recrutement",
+    "alertes":      "Alertes Légales",
     "social":       "Service Social",
     "archives":     "Archives Personnel",
     "attachements": "Attachements (Au 25)",
@@ -112,7 +114,9 @@
     "error_not_confirmed":"Compte non confirmé. Vérifiez votre boîte mail.",
     "error_too_many":     "Trop de tentatives. Réessayez dans quelques minutes.",
     "error_network":      "Erreur réseau. Vérifiez votre connexion.",
-    "error_unknown":      "Une erreur est survenue. Réessayez."
+    "error_unknown":      "Une erreur est survenue. Réessayez.",
+    "register_cta":       "Pas encore client ?",
+    "trial_label":        "🚀 Créer mon espace gratuit — 30 jours d'essai"
   },
   "kpi": {
     "title":       "Poste de Commandement",

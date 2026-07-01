@@ -1,10 +1,13 @@
 export const MODULES = [
   { _section: 'direction' },
-  { id: 'kpi',          icon: '📊', roles: ['GERANT'] },
+  { id: 'kpi',          icon: '📊', roles: ['GERANT', 'SUPER_ADMIN'] },
   { id: 'statistiques', icon: '📈', roles: ['GERANT'] },
   { id: 'parametres',   icon: '⚙️', roles: ['GERANT'] },
+  { id: 'fiscal',       icon: '🧾', roles: ['GERANT'] },
+  { id: 'superadmin',   icon: '👑', roles: ['SUPER_ADMIN'] },
 
   { _section: 'operations' },
+  { id: 'tenues',     icon: '👕', roles: ['GERANT', 'OPERATIONS'] },
   { id: 'salleops',   icon: '🖥️', roles: ['GERANT', 'OPERATIONS'] },
   { id: 'inspection', icon: '🕵️', roles: ['GERANT', 'OPERATIONS'] },
   { id: 'logistique', icon: '🚙', roles: ['GERANT', 'OPERATIONS'] },
@@ -18,9 +21,12 @@ export const MODULES = [
   { id: 'facturation',  icon: '💰', roles: ['GERANT', 'COMMERCIAL'] },
   { id: 'recouvrement', icon: '🏦', roles: ['GERANT', 'COMMERCIAL'] },
   { id: 'prospection',  icon: '🎯', roles: ['GERANT', 'COMMERCIAL'] },
+  { id: 'garanties',    icon: '🔒', roles: ['GERANT', 'COMMERCIAL', 'JURIDIQUE'] },
 
   { _section: 'rh' },
+  { id: 'paie',         icon: '💳', roles: ['GERANT', 'RH'] },
   { id: 'recrutement',  icon: '📝', roles: ['GERANT', 'RH'] },
+  { id: 'alertes',      icon: '🔔', roles: ['GERANT', 'RH'] },
   { id: 'social',       icon: '🏥', roles: ['GERANT', 'RH'] },
   { id: 'pointage',     icon: '⏰', roles: ['GERANT', 'RH', 'OPERATIONS'] },
   { id: 'attachements', icon: '📑', roles: ['GERANT', 'RH', 'COMMERCIAL'] },

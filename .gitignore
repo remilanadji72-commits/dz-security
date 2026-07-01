@@ -17,6 +17,10 @@ dist-ssr
 .env.local
 .env.*.local
 
+# Scripts — artefacts locaux de test
+scripts/TEST_*.pdf
+scripts/generer-pdf-test.mjs
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
